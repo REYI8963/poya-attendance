@@ -206,6 +206,15 @@
             <span>間</span>
           </div>
         </div>
+        <div style="margin-top:6px">
+          <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px">噸數</div>
+          <div class="area-chips" id="factory-ton-chips">
+            <button class="chip" onclick="setFactoryTon('11噸')">11噸</button>
+            <button class="chip" onclick="setFactoryTon('6.5噸')">6.5噸</button>
+            <button class="chip" onclick="setFactoryTon('3.5噸')">3.5噸</button>
+          </div>
+          <input type="hidden" id="factory-ton">
+        </div>
         <div class="preview-tag" id="factory-preview"></div>
       </div>
     </div>
@@ -215,6 +224,14 @@
   <!-- 出勤紀錄 -->
   <div class="page" id="page-records">
     <div id="stats-area"></div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">篩選月份</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="cal-nav" onclick="recordMonthPrev()">‹</button>
+        <div id="record-month-label" style="flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--text)"></div>
+        <button class="cal-nav" onclick="recordMonthNext()">›</button>
+      </div>
+    </div>
     <div id="records-list"><div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div></div>
   </div>
 
@@ -295,6 +312,15 @@
           <span>間</span>
         </div>
       </div>
+      <div style="margin-top:6px">
+        <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px">噸數</div>
+        <div class="area-chips" id="edit-factory-ton-chips">
+          <button class="chip" onclick="setEditFactoryTon('11噸')">11噸</button>
+          <button class="chip" onclick="setEditFactoryTon('6.5噸')">6.5噸</button>
+          <button class="chip" onclick="setEditFactoryTon('3.5噸')">3.5噸</button>
+        </div>
+        <input type="hidden" id="edit-factory-ton">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="saveEdit()">💾 儲存</button>
@@ -312,10 +338,17 @@ const ROUTE_COLORS = ['#e8317a','#f47920','#3aaa35','#9b59b6','#1a73e8','#e67e22
 const ROUTE_COUNT = 6;
 let currentUser = sessionStorage.getItem('poya_user') || null;
 let calYear, calMonth;
+let recordYear, recordMonth;
 
 function skey(u){ return 'poya_records_'+u; }
 function getRecords(){ return JSON.parse(localStorage.getItem(skey(currentUser))||'[]'); }
-function saveRecords(r){ localStorage.setItem(skey(currentUser),JSON.stringify(r)); }
+function saveRecords(r){
+  // 只保留最近6個月的資料
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 6);
+  const filtered = r.filter(rec => new Date(rec.date) >= cutoff);
+  localStorage.setItem(skey(currentUser), JSON.stringify(filtered));
+}
 
 // 建立趟次輸入欄位
 function buildRouteInputs(container, prefix, count) {
@@ -379,10 +412,20 @@ function setFactory(area){
   document.querySelectorAll('#factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===area));
   updateFactoryPreview();
 }
+function setFactoryTon(ton){
+  document.getElementById('factory-ton').value=ton;
+  document.querySelectorAll('#factory-ton-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===ton));
+  updateFactoryPreview();
+}
+function setEditFactoryTon(ton){
+  document.getElementById('edit-factory-ton').value=ton;
+  document.querySelectorAll('#edit-factory-ton-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===ton));
+}
 function updateFactoryPreview(){
   const area=document.getElementById('factory-area').value;
   const count=document.getElementById('factory-count').value;
-  document.getElementById('factory-preview').textContent=area?(area+(count?'（'+count+'間）':'')):'' ;
+  const ton=document.getElementById('factory-ton').value;
+  document.getElementById('factory-preview').textContent=area?(area+(count?'（'+count+'間）':'')+(ton?' ['+ton+']':'')):'';
 }
 function setEditFactory(area){
   document.getElementById('edit-factory-area').value=area==='無'?'':area;
@@ -403,6 +446,7 @@ window.onload = ()=>{
   document.getElementById('date').value=now.toISOString().split('T')[0];
   document.getElementById('dl-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   calYear=now.getFullYear(); calMonth=now.getMonth();
+  recordYear=now.getFullYear(); recordMonth=now.getMonth();
   updateTenPreview();
   document.getElementById('login-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 };
@@ -438,7 +482,7 @@ function submitForm(){
   const r1=document.getElementById('r1').value.trim();
   if(!date){toast('⚠️ 請選擇日期');return;}
   if(!r1){toast('⚠️ 請填寫趟次一路線');return;}
-  const data={name:currentUser,date,plate:document.getElementById('plate').value.trim(),transfer:document.getElementById('transfer').value,factory:document.getElementById('factory-area').value,factoryCount:document.getElementById('factory-count').value,time:new Date().toLocaleString('zh-TW')};
+  const data={name:currentUser,date,plate:document.getElementById('plate').value.trim(),transfer:document.getElementById('transfer').value,factory:document.getElementById('factory-area').value,factoryCount:document.getElementById('factory-count').value,factoryTon:document.getElementById('factory-ton').value,time:new Date().toLocaleString('zh-TW')};
   for(let n=1;n<=ROUTE_COUNT;n++){
     data['r'+n]=fmt(document.getElementById('r'+n).value.trim(),document.getElementById('c'+n).value);
     data['t'+n]=document.getElementById('t'+n).value;
@@ -453,8 +497,10 @@ function submitForm(){
     document.getElementById('transfer').value='';
     document.getElementById('factory-area').value='';
     document.getElementById('factory-count').value='';
+    document.getElementById('factory-ton').value='';
     document.getElementById('factory-preview').textContent='';
     document.querySelectorAll('#factory-chips .chip').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('#factory-ton-chips .chip').forEach(b=>b.classList.remove('on'));
   },500);
 }
 
@@ -481,6 +527,8 @@ function renderCalendar(){
     </div>`;
   }
 }
+function recordMonthPrev(){ recordMonth--; if(recordMonth<0){recordMonth=11;recordYear--;} loadMyRecords(); }
+function recordMonthNext(){ recordMonth++; if(recordMonth>11){recordMonth=0;recordYear++;} loadMyRecords(); }
 function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
 function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
 function showDayDetail(ds){
@@ -491,7 +539,7 @@ function showDayDetail(ds){
     let rows='';
     for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${r['r'+n]}${r['t'+n]?' ['+r['t'+n]+']':''}</span></div>`;}
     if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
-    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}</span></div>`;
+    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}${r.factoryTon?' ['+r.factoryTon+']':''}</span></div>`;
     return`<div class="record-card"><div class="record-date">📅 ${r.date}</div>${rows}</div>`;
   }).join('');
 }
@@ -597,7 +645,7 @@ function exportPDF(){
       const ton=rec?rec['t'+n]||'':'';
       routeCells+=`<td>${route}${ton?' <span style="font-size:7pt;color:#555">['+ton+']</span>':''}</td>`;
     }
-    const facVal=rec?(rec.factory||'')+(rec.factoryCount?'（'+rec.factoryCount+'間）':''):'';
+    const facVal=rec?(rec.factory||'')+(rec.factoryCount?'（'+rec.factoryCount+'間）':'')+(rec.factoryTon?' ['+rec.factoryTon+']':''):'';
     return`<tr class="${isSun?'sunday':''}"><td class="center">${ds.slice(5)}(${wd})</td>${routeCells}<td class="center">${rec?rec.transfer||'':''}</td><td class="center">${rec?rec.plate||'':''}</td><td class="center">${facVal}</td></tr>`;
   }).join('');
 
@@ -649,31 +697,35 @@ function exportPDF(){
 // 紀錄
 function loadMyRecords(){
   const all=getRecords().reverse();
-  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
-  const mStart=new Date(y,m,1),mEnd=new Date(y,m+1,0,23,59,59);
+  const y=recordYear, m=recordMonth;
+  const mStart=new Date(y,m,1), mEnd=new Date(y,m+1,0,23,59,59);
   const thisMon=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
   const mTransfer=thisMon.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
   const mTrips=thisMon.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
+  const rocYear=y-1911;
+  document.getElementById('record-month-label').textContent=rocYear+'年'+String(m+1).padStart(2,'0')+'月';
   document.getElementById('stats-area').innerHTML=`
-    <div style="margin-bottom:8px;font-size:12px;color:var(--sub);font-weight:600;padding:0 2px">${y-1911}年${m+1}月統計</div>
+    <div style="margin-bottom:8px;font-size:12px;color:var(--sub);font-weight:600;padding:0 2px">${rocYear}年${m+1}月統計</div>
     <div class="stats-row">
       <div class="stat-box"><div class="stat-num" style="color:var(--pink)">${all.length}</div><div class="stat-lbl">累計出勤天</div></div>
-      <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${mTrips}</div><div class="stat-lbl">本月趟數</div></div>
-      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${mTransfer}</div><div class="stat-lbl">本月轉倉</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${mTrips}</div><div class="stat-lbl">當月趟數</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${mTransfer}</div><div class="stat-lbl">當月轉倉</div></div>
     </div>`;
   const list=document.getElementById('records-list');
-  if(!all.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div>';return;}
-  list.innerHTML=all.map((r,i)=>{
+  if(!thisMon.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>'+rocYear+'年'+String(m+1).padStart(2,'0')+'月無出勤紀錄</div>';return;}
+  const allLen=all.length;
+  list.innerHTML=thisMon.map((r,i)=>{
+    const realIdx=all.findIndex(a=>a.date===r.date&&a.time===r.time);
     let rows='';
     for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${r['r'+n]}${r['t'+n]?' ['+r['t'+n]+']':''}</span></div>`;}
     if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
-    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}</span></div>`;
+    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}${r.factoryTon?' ['+r.factoryTon+']':''}</span></div>`;
     if(r.plate)rows+=`<div class="record-row"><span class="lbl">車牌</span><span class="val">${r.plate}</span></div>`;
     return`<div class="record-card">
       <div class="record-date">📅 ${r.date}</div>${rows}
       <div class="record-actions">
-        <button class="btn btn-edit" onclick="openEdit(${all.length-1-i})">✏️ 修改</button>
-        <button class="btn btn-danger" onclick="deleteRecord(${all.length-1-i})">🗑️ 刪除</button>
+        <button class="btn btn-edit" onclick="openEdit(${realIdx})">✏️ 修改</button>
+        <button class="btn btn-danger" onclick="deleteRecord(${realIdx})">🗑️ 刪除</button>
       </div></div>`;
   }).join('');
 }
@@ -699,16 +751,19 @@ function openEdit(idx){
   }
   const fac=r.factory||'';
   const facCount=r.factoryCount||'';
+  const facTon=r.factoryTon||'';
   document.getElementById('edit-factory-area').value=fac;
   document.getElementById('edit-factory-count').value=facCount;
+  document.getElementById('edit-factory-ton').value=facTon;
   document.querySelectorAll('#edit-factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===fac));
+  document.querySelectorAll('#edit-factory-ton-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===facTon));
   document.getElementById('edit-modal').classList.add('show');
 }
 function closeModal(){ document.getElementById('edit-modal').classList.remove('show'); }
 function saveEdit(){
   const idx=parseInt(document.getElementById('edit-idx').value);
   const records=getRecords();
-  const upd={...records[idx],date:document.getElementById('edit-date').value,plate:document.getElementById('edit-plate').value.trim(),transfer:document.getElementById('edit-transfer').value,factory:document.getElementById('edit-factory-area').value,factoryCount:document.getElementById('edit-factory-count').value};
+  const upd={...records[idx],date:document.getElementById('edit-date').value,plate:document.getElementById('edit-plate').value.trim(),transfer:document.getElementById('edit-transfer').value,factory:document.getElementById('edit-factory-area').value,factoryCount:document.getElementById('edit-factory-count').value,factoryTon:document.getElementById('edit-factory-ton').value};
   for(let n=1;n<=ROUTE_COUNT;n++){
     upd['r'+n]=fmt(document.getElementById('edit-r'+n).value.trim(),document.getElementById('edit-c'+n).value);
     upd['t'+n]=document.getElementById('edit-t'+n).value;
