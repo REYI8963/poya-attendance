@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>POYA 寶雅出勤填報</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root { color-scheme: light; }
@@ -309,7 +307,7 @@ body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var
       <div class="pdf-preview-title">📄 預覽下載內容</div>
       <div id="preview-rows"></div>
     </div>
-    <button class="btn btn-dl" onclick="downloadPDF()">⬇️ 下載本週出勤 PDF</button>
+    <button class="btn btn-dl" onclick="printWeekPDF()">🖨️ 列印 / 儲存為 PDF</button>
     <button class="btn btn-outline" onclick="previewWeek()">👁 預覽內容</button>
   </div>
 
@@ -458,42 +456,86 @@ body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var
       :records.map(r=>`<div class="pdf-row"><span class="day-label">${r.date.slice(5)}</span><span class="routes">${[r.r1,r.r2,r.r3,r.r4].filter(Boolean).join(' / ')}${r.transfer?' ｜轉倉'+r.transfer:''}</span></div>`).join('');
     document.getElementById('pdf-preview').style.display='block';
   }
-  function downloadPDF(){
-    const offset=parseInt(document.getElementById('dl-week').value);
-    const{start,end}=getWeekRange(offset);
-    const records=getMyWeekRecords();
-    const{jsPDF}=window.jspdf;
-    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-    const rocYear=start.getFullYear()-1911;
-    const month=String(start.getMonth()+1).padStart(2,'0');
-    doc.setFontSize(14);doc.setFont('helvetica','bold');
-    doc.text(rocYear+'\u5e74'+month+'\u6708\u51fa\u52e4\u8868\uff08\u5bf6\u96c5\uff09',148,13,{align:'center'});
-    doc.setFontSize(9);doc.setFont('helvetica','normal');
-    doc.text('\u904b\u52d9\u58eb\uff1a'+currentUser,275,10,{align:'right'});
-    doc.text(fmtDate(start)+' ~ '+fmtDate(end),275,16,{align:'right'});
-    const days=[];
-    for(let i=0;i<7;i++){
-      const d=new Date(start);d.setDate(start.getDate()+i);
-      const ds=fmtDate(d),rec=records.find(r=>r.date===ds);
-      days.push({ds,rec,isSun:d.getDay()===0});
+function printWeekPDF() {
+    const offset = parseInt(document.getElementById('dl-week').value);
+    const { start, end } = getWeekRange(offset);
+    const records = getMyWeekRecords();
+    const rocYear = start.getFullYear() - 1911;
+    const month = String(start.getMonth() + 1).padStart(2, '0');
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const ds = fmtDate(d);
+      const rec = records.find(r => r.date === ds);
+      const weekdays = ['日','一','二','三','四','五','六'];
+      days.push({ ds, rec, isSun: d.getDay() === 0, wd: weekdays[d.getDay()] });
     }
-    doc.autoTable({
-      startY:20,
-      head:[['\u65e5\u671f','\u914d\u9001\u8da3\u6b21\u4e00\uff08\u8def\u7dda\u5340\u57df\uff09','\u914d\u9001\u8da3\u6b21\u4e8c\uff08\u8def\u7dda\u5340\u57df\uff09','\u914d\u9001\u8da3\u6b21\u4e09\uff08\u8def\u7dda\u5340\u57df\uff09','\u914d\u9001\u8da3\u6b21\u56db\uff08\u8def\u7dda\u5340\u57df\uff09','\u8f49\u5009','\u8eca\u724c\u865f\u78bc']],
-      body:days.map(({ds,rec})=>[ds.slice(5),rec?rec.r1||'':'',rec?rec.r2||'':'',rec?rec.r3||'':'',rec?rec.r4||'':'',rec?rec.transfer||'':'',rec?rec.plate||'':'']),
-      theme:'grid',
-      headStyles:{fillColor:[232,49,122],textColor:[255,255,255],fontStyle:'bold',fontSize:8,halign:'center',valign:'middle'},
-      bodyStyles:{fontSize:8,cellPadding:3,valign:'middle',minCellHeight:14},
-      columnStyles:{0:{halign:'center',cellWidth:12},1:{cellWidth:"auto"},2:{cellWidth:"auto"},3:{cellWidth:"auto"},4:{cellWidth:"auto"},5:{halign:'center',cellWidth:10},6:{halign:'center',cellWidth:14}},
-      didParseCell:(data)=>{if(data.section==='body'&&days[data.row.index]?.isSun)data.cell.styles.fillColor=[220,220,220];},
-      foot:[[{content:'\u7e3d\u8da3\u6b21\uff1a'+records.length,colSpan:2,styles:{fontSize:8}},{content:'\u8f49\u5009\uff1a'+records.reduce((s,r)=>s+(parseInt(r.transfer)||0),0)+'\u6b21',colSpan:2,styles:{fontSize:8}},{content:'',colSpan:3}]],
-      footStyles:{fillColor:[255,240,248],textColor:[0,0,0],fontSize:8},
-      tableWidth:281,
-      margin:{left:8,right:8},
-    });
-    // 直接導向 PDF datauri，Safari 會顯示 PDF 預覽，可分享或儲存
-    const pdfOutput = doc.output('datauristring');
-    window.location.href = pdfOutput;
+
+    const rows = days.map(({ ds, rec, isSun, wd }) => `
+      <tr style="${isSun ? 'background:#ddd' : ''}">
+        <td style="text-align:center">${ds.slice(5)}(${wd})</td>
+        <td>${rec ? rec.r1||'' : ''}</td>
+        <td>${rec ? rec.r2||'' : ''}</td>
+        <td>${rec ? rec.r3||'' : ''}</td>
+        <td>${rec ? rec.r4||'' : ''}</td>
+        <td style="text-align:center">${rec ? rec.transfer||'' : ''}</td>
+        <td style="text-align:center">${rec ? rec.plate||'' : ''}</td>
+      </tr>`).join('');
+
+    const totalTrips = records.length;
+    const totalTransfer = records.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
+
+    const printHTML = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>${rocYear}年${month}月出勤表</title>
+<style>
+  @page { size: A4 landscape; margin: 10mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Microsoft JhengHei", "PingFang TC", sans-serif; font-size: 10pt; }
+  h2 { text-align: center; font-size: 14pt; margin-bottom: 4mm; }
+  .sub { display: flex; justify-content: space-between; font-size: 9pt; margin-bottom: 3mm; color: #555; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #e8317a; color: white; font-size: 9pt; text-align: center;
+       border: 1px solid #ccc; padding: 4px 2px; }
+  td { border: 1px solid #ccc; padding: 5px 4px; font-size: 9pt; vertical-align: middle; }
+  .footer { margin-top: 4mm; font-size: 9pt; display: flex; gap: 20mm; border-top: 1px solid #ccc; padding-top: 3mm; }
+</style>
+</head>
+<body>
+<h2>${rocYear}年${month}月出勤表（寶雅）</h2>
+<div class="sub">
+  <span>運務士：${currentUser}</span>
+  <span>期間：${fmtDate(start)} ～ ${fmtDate(end)}</span>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:13%">日期</th>
+      <th style="width:20%">配送趟次一（路線區域）</th>
+      <th style="width:20%">配送趟次二（路線區域）</th>
+      <th style="width:20%">配送趟次三（路線區域）</th>
+      <th style="width:20%">配送趟次四（路線區域）</th>
+      <th style="width:4%">轉倉</th>
+      <th style="width:7%">車牌號碼</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="footer">
+  <span>總趟數：${totalTrips} 趟</span>
+  <span>轉倉：${totalTransfer} 次</span>
+</div>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank');
+    w.document.write(printHTML);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 500);
   }
 
   function loadMyRecords(){
