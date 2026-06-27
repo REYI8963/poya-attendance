@@ -174,6 +174,7 @@
     <div class="tab on" onclick="showTab('form',this)">📝 出勤趟數回報</div>
     <div class="tab" onclick="showTab('records',this)">📋 出勤紀錄</div>
     <div class="tab" onclick="showTab('calendar',this)">📅 出勤月曆</div>
+    <div class="tab" onclick="showTab('salary',this)">💰 本月薪資</div>
     <div class="tab" onclick="showTab('download',this)">⬇️ PDF匯出</div>
   </div>
 
@@ -246,6 +247,19 @@
       <div class="cal-grid" id="cal-grid"></div>
     </div>
     <div id="cal-detail"></div>
+  </div>
+
+  <!-- 本月薪資 -->
+  <div class="page" id="page-salary">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">篩選月份</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="cal-nav" onclick="salaryMonthPrev()">‹</button>
+        <div id="salary-month-label" style="flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--text)"></div>
+        <button class="cal-nav" onclick="salaryMonthNext()">›</button>
+      </div>
+    </div>
+    <div id="salary-content"></div>
   </div>
 
   <!-- PDF匯出 -->
@@ -339,6 +353,12 @@ const ROUTE_COUNT = 6;
 let currentUser = sessionStorage.getItem('poya_user') || null;
 let calYear, calMonth;
 let recordYear, recordMonth;
+let salaryYear, salaryMonth;
+
+const SALARY_RATES = {
+  '台南': 1000, '嘉義': 1400, '雲林': 1600, '高雄': 1000,
+  '廠提台南': 1000, '廠提台中': 2000, '轉倉': 300
+};
 
 function skey(u){ return 'poya_records_'+u; }
 function getRecords(){ return JSON.parse(localStorage.getItem(skey(currentUser))||'[]'); }
@@ -465,6 +485,7 @@ window.onload = ()=>{
   document.getElementById('dl-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   calYear=now.getFullYear(); calMonth=now.getMonth();
   recordYear=now.getFullYear(); recordMonth=now.getMonth();
+  salaryYear=now.getFullYear(); salaryMonth=now.getMonth();
   updateTenPreview();
   document.getElementById('login-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 };
@@ -477,6 +498,9 @@ function showApp(){
   buildRouteInputs('routes-container','',ROUTE_COUNT);
   buildRouteInputs('edit-routes-container','edit-',ROUTE_COUNT);
   loadMyRecords();
+  const now2=new Date();
+  salaryYear=now2.getFullYear(); salaryMonth=now2.getMonth();
+  document.getElementById('salary-month-label').textContent=(salaryYear-1911)+'年'+String(salaryMonth+1).padStart(2,'0')+'月';
 }
 function doLogin(){
   const name=document.getElementById('login-name').value, pw=document.getElementById('login-pw').value, err=document.getElementById('login-error');
@@ -492,6 +516,7 @@ function showTab(t,el){
   document.getElementById('page-'+t).classList.add('on'); el.classList.add('on');
   if(t==='records') loadMyRecords();
   if(t==='calendar') renderCalendar();
+  if(t==='salary') loadSalary();
 }
 function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
 
@@ -542,7 +567,7 @@ function renderCalendar(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const dayRecs=records.filter(r=>r.date===ds);
-    const tripCount=dayRecs.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
+    const tripCount=dayRecs.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}if(r.factory&&r.factory!=='無')c++;return s+c;},0);
     const isSun=new Date(calYear,calMonth,d).getDay()===0;
     const hasRec=dayRecs.length>0;
     grid.innerHTML+=`<div class="cal-day${isSun?' sunday':''}${ds===today?' today':''}${hasRec?' has-record':''}" onclick="showDayDetail('${ds}')">
@@ -553,6 +578,97 @@ function renderCalendar(){
 }
 function recordMonthPrev(){ recordMonth--; if(recordMonth<0){recordMonth=11;recordYear--;} loadMyRecords(); }
 function recordMonthNext(){ recordMonth++; if(recordMonth>11){recordMonth=0;recordYear++;} loadMyRecords(); }
+function salaryMonthPrev(){ salaryMonth--; if(salaryMonth<0){salaryMonth=11;salaryYear--;} loadSalary(); }
+function salaryMonthNext(){ salaryMonth++; if(salaryMonth>11){salaryMonth=0;salaryYear++;} loadSalary(); }
+
+function loadSalary(){
+  const rocYear=salaryYear-1911;
+  const mStr=rocYear+'年'+String(salaryMonth+1).padStart(2,'0')+'月';
+  document.getElementById('salary-month-label').textContent=mStr;
+
+  const all=getRecords();
+  const mStart=new Date(salaryYear,salaryMonth,1);
+  const mEnd=new Date(salaryYear,salaryMonth+1,0,23,59,59);
+  const records=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
+
+  // 計算各區域趟數
+  const areaCounts={台南:0,嘉義:0,雲林:0,高雄:0};
+  const factoryCounts={台南:0,台中:0};
+  let totalTransfer=0;
+  let totalTrips=0;
+
+  records.forEach(r=>{
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        const a=(r['a'+n]||'').trim();
+        if(areaCounts[a]!==undefined){ areaCounts[a]++; totalTrips++; }
+        else { totalTrips++; } // 沒選區域也算趟
+      }
+    }
+    if(r.factory&&r.factory!=='無'){
+      if(factoryCounts[r.factory]!==undefined){ factoryCounts[r.factory]++; totalTrips++; }
+    }
+    totalTransfer+=parseInt(r.transfer||0);
+    totalTrips+=parseInt(r.transfer||0); // 轉倉也計入總趟數
+  });
+
+  // 計算薪資
+  let salary=0;
+  salary+=areaCounts['台南']*SALARY_RATES['台南'];
+  salary+=areaCounts['嘉義']*SALARY_RATES['嘉義'];
+  salary+=areaCounts['雲林']*SALARY_RATES['雲林'];
+  salary+=areaCounts['高雄']*SALARY_RATES['高雄'];
+  salary+=factoryCounts['台南']*SALARY_RATES['廠提台南'];
+  salary+=factoryCounts['台中']*SALARY_RATES['廠提台中'];
+  salary+=totalTransfer*SALARY_RATES['轉倉'];
+
+  const fmt$=n=>n.toLocaleString('zh-TW');
+
+  const areaRows=Object.entries(areaCounts).map(([k,v])=>{
+    if(v===0)return'';
+    return`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pink-l)">
+      <span style="font-size:13px;color:var(--sub)">${k}路線</span>
+      <span style="font-size:13px;font-weight:600">${v}趟 × $${fmt$(SALARY_RATES[k])} = <span style="color:var(--pink)">$${fmt$(v*SALARY_RATES[k])}</span></span>
+    </div>`;
+  }).join('');
+
+  const facRows=Object.entries(factoryCounts).map(([k,v])=>{
+    if(v===0)return'';
+    return`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pink-l)">
+      <span style="font-size:13px;color:var(--sub)">廠提${k}</span>
+      <span style="font-size:13px;font-weight:600">${v}趟 × $${fmt$(SALARY_RATES['廠提'+k])} = <span style="color:var(--pink)">$${fmt$(v*SALARY_RATES['廠提'+k])}</span></span>
+    </div>`;
+  }).join('');
+
+  const transferRow=totalTransfer>0?`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pink-l)">
+    <span style="font-size:13px;color:var(--sub)">轉倉</span>
+    <span style="font-size:13px;font-weight:600">${totalTransfer}次 × $${fmt$(SALARY_RATES['轉倉'])} = <span style="color:var(--pink)">$${fmt$(totalTransfer*SALARY_RATES['轉倉'])}</span></span>
+  </div>`:'';
+
+  document.getElementById('salary-content').innerHTML=`
+    <!-- 預估薪資 -->
+    <div class="card" style="text-align:center;margin-bottom:12px;background:linear-gradient(135deg,var(--pink),var(--pink-d));border:none">
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:6px;font-weight:600">本月預估薪資</div>
+      <div style="font-size:36px;font-weight:900;color:white">$${fmt$(salary)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px">${mStr}</div>
+    </div>
+
+    <!-- 總趟數 -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">本月總趟數</div>
+      <div style="font-size:32px;font-weight:900;color:var(--pink);text-align:center;padding:8px 0">${totalTrips} 趟</div>
+    </div>
+
+    <!-- 明細 -->
+    <div class="card">
+      <div class="card-title">各項明細</div>
+      ${areaRows||'<div style="color:var(--sub);font-size:13px;padding:8px 0">本月尚無路線趟數</div>'}
+      ${facRows}
+      ${transferRow}
+      ${!areaRows&&!facRows&&!transferRow?'':'<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px"><span style="font-size:14px;font-weight:700">合計</span><span style="font-size:16px;font-weight:900;color:var(--pink)">$'+fmt$(salary)+'</span></div>'}
+    </div>
+  `;
+}
 function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
 function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
 function showDayDetail(ds){
@@ -578,27 +694,27 @@ function showDayDetail(ds){
 
 // 10天週期
 function getTenRange(offset){
-  // 按月份固定切割：1-10, 11-20, 21-月底
+  // 固定切割：1-10, 11-20, 21-月底
   const now=new Date();
   let y=now.getFullYear(), m=now.getMonth();
-  // 計算當前期數(0=當期)
   const day=now.getDate();
-  let period = day<=10?2 : day<=20?1 : 0; // 0=21-月底, 1=11-20, 2=1-10
-  let totalOffset=period+offset;
-  // 換算回哪個月哪個期
-  let periodInMonth=totalOffset%3, monthsBack=Math.floor(totalOffset/3);
-  m-=monthsBack; while(m<0){m+=12;y--;}
+  // 0=本期, 往前推
+  let curPeriod = day<=10?0 : day<=20?1 : 2; // 0=1-10期, 1=11-20期, 2=21-月底期
+  let totalPeriod = curPeriod - offset; // 往前推
+  // 換算月份
+  while(totalPeriod < 0){ totalPeriod+=3; m--; if(m<0){m=11;y--;} }
+  while(totalPeriod > 2){ totalPeriod-=3; m++; if(m>11){m=0;y++;} }
   const dim=new Date(y,m+1,0).getDate();
   let start,end;
-  if(periodInMonth===0){start=new Date(y,m,21);end=new Date(y,m,dim,23,59,59);}
-  else if(periodInMonth===1){start=new Date(y,m,11);end=new Date(y,m,20,23,59,59);}
-  else{start=new Date(y,m,1);end=new Date(y,m,10,23,59,59);}
-  return{start,end};
+  if(totalPeriod===0){start=new Date(y,m,1);end=new Date(y,m,10,23,59,59);}
+  else if(totalPeriod===1){start=new Date(y,m,11);end=new Date(y,m,20,23,59,59);}
+  else{start=new Date(y,m,21);end=new Date(y,m,dim,23,59,59);}
+  return{start,end,periodLabel:(y-1911)+'年'+(m+1)+'月 '+(totalPeriod===0?'1-10日':totalPeriod===1?'11-20日':'21-'+dim+'日')};
 }
 function fmtDate(d){ return d.toISOString().split('T')[0]; }
 function updateTenPreview(){
-  const{start,end}=getTenRange(parseInt(document.getElementById('dl-ten').value));
-  document.getElementById('ten-label').textContent=fmtDate(start)+' ～ '+fmtDate(end);
+  const{start,end,periodLabel}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+  document.getElementById('ten-label').textContent=periodLabel+' ('+fmtDate(start)+' ～ '+fmtDate(end)+')';
 }
 function toggleExportType(){
   const t=document.getElementById('export-type').value;
@@ -632,25 +748,27 @@ function previewExport(){
 function calcTotals(records){
   const area={雲林:0,嘉義:0,台南:0,高雄:0};
   const factory={台南:0,台中:0};
+  let totalTransfer=0;
   records.forEach(r=>{
     for(let n=1;n<=ROUTE_COUNT;n++){
       if(r['r'+n]){
-        const a=r['a'+n]||'';
-        AREAS.forEach(aName=>{if(a===aName)area[aName]++;});
+        const a=(r['a'+n]||'').trim();
+        if(area[a]!==undefined) area[a]++;
       }
     }
-    if(r.factory&&factory[r.factory]!==undefined) factory[r.factory]++;
+    if(r.factory&&r.factory!=='無'&&factory[r.factory]!==undefined) factory[r.factory]++;
+    totalTransfer+=parseInt(r.transfer||0);
   });
-  return{area,factory};
+  return{area,factory,totalTransfer};
 }
 
 function exportPDF(){
   const{records,start,end,type}=getExportRecords();
   const rocYear=start.getFullYear()-1911;
   const month=String(start.getMonth()+1).padStart(2,'0');
-  const{area,factory}=calcTotals(records);
-  const totalTrips=records.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
-  const totalTransfer=records.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
+  const totals=calcTotals(records);
+  const totalTrips=records.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}if(r.factory&&r.factory!=='無')c++;return s+c;},0);
+  const totalTransfer=totals.totalTransfer;
 
   // 日期列表
   let days=[];
@@ -721,7 +839,7 @@ function exportPDF(){
   <tbody>${rows}</tbody>
 </table>
 <div class="footer">
-  <div class="footer-row">總趟數：${totalTrips} 趟　**　雲林路線：${area['雲林']} 趟　**　嘉義路線：${area['嘉義']} 趟　**　台南路線：${area['台南']} 趟　**　高雄路線：${area['高雄']} 趟　廠提: 台南 ${factory['台南']} 次　台中 ${factory['台中']} 次</div>
+  <div class="footer-row">總趟數：${totalTrips} 趟　**　雲林路線：${totals.area['雲林']} 趟　**　嘉義路線：${totals.area['嘉義']} 趟　**　台南路線：${totals.area['台南']} 趟　**　高雄路線：${totals.area['高雄']} 趟　廠提: 台南 ${totals.factory['台南']} 次　台中 ${totals.factory['台中']} 次</div>
   <div class="footer-row">轉倉：${totalTransfer}</div>
 </div>
 </body></html>`;
@@ -738,7 +856,7 @@ function loadMyRecords(){
   const mStart=new Date(y,m,1), mEnd=new Date(y,m+1,0,23,59,59);
   const thisMon=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
   const mTransfer=thisMon.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
-  const mTrips=thisMon.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
+  const mTrips=thisMon.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}if(r.factory&&r.factory!=='無')c++;return s+c;},0);
   const rocYear=y-1911;
   document.getElementById('record-month-label').textContent=rocYear+'年'+String(m+1).padStart(2,'0')+'月';
   document.getElementById('stats-area').innerHTML=`
