@@ -863,14 +863,15 @@ function exportPDF(){
 </div>
 </body></html>`;
 
-  // 用 Blob URL 開新分頁，讓使用者直接列印
-  const blob = new Blob([printHTML], {type: 'text/html'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  // 原本能正常運作的方式
+  const w = window.open('', '_blank');
+  if(w){
+    w.document.write(printHTML);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 600);
+  } else {
+    toast('❌ 請允許 Chrome 彈出視窗');
+  }
 }
 
 // 紀錄
