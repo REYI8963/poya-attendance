@@ -878,7 +878,8 @@ function exportPDF(){
 
 // 紀錄
 function loadMyRecords(){
-  const all=getRecords().reverse();
+  const rawAll=getRecords(); // 原始順序（用於 index 操作）
+  const all=rawAll.slice().reverse(); // 反序顯示用
   const y=recordYear, m=recordMonth;
   const mStart=new Date(y,m,1), mEnd=new Date(y,m+1,0,23,59,59);
   const thisMon=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
@@ -897,7 +898,7 @@ function loadMyRecords(){
   if(!thisMon.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>'+rocYear+'年'+String(m+1).padStart(2,'0')+'月無出勤紀錄</div>';return;}
   const allLen=all.length;
   list.innerHTML=thisMon.map((r,i)=>{
-    const realIdx=all.findIndex(a=>a.date===r.date&&a.time===r.time);
+    const realIdx=rawAll.findIndex(a=>a.date===r.date&&a.time===r.time);
     let rows='';
     for(let n=1;n<=ROUTE_COUNT;n++){
       if(r['r'+n]){
