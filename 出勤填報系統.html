@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-TW" style="background:#fdf4f8">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POYA 寶雅出勤填報</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { color-scheme: light; }
+  :root {
+    --pink:    #e8317a;
+    --pink-d:  #c0185f;
+    --pink-l:  #fde8f1;
+    --pink-ll: #fff5f9;
+    --orange:  #f47920;
+    --green:   #3aaa35;
+    --yellow:  #ffe066;
+    --bg:      #fdf4f8;
+    --border:  #f0d0df;
+    --text:    #2a1520;
+    --sub:     #9a6878;
+  }
+  body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: #fdf4f8 !important; min-height: 100vh; color: var(--text); color-scheme: light only; }
+body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+
+  /* ── 登入 ── */
+  #login-screen {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 32px 24px;
+    background: linear-gradient(160deg, var(--pink-d) 0%, var(--pink) 55%, #f06090 100%);
+  }
+  .login-brand { text-align: center; margin-bottom: 36px; }
+  .login-poya { font-size: 42px; font-weight: 900; letter-spacing: 3px; color: white; text-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+  .login-tagline { color: rgba(255,255,255,0.75); font-size: 12px; letter-spacing: 4px; margin-top: 6px; }
+  .login-card {
+    background: white; border-radius: 24px; padding: 30px 24px;
+    width: 100%; max-width: 340px;
+    box-shadow: 0 12px 48px rgba(200,24,95,0.25);
+  }
+  .login-card h2 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .login-card p { font-size: 12px; color: var(--sub); margin-bottom: 20px; }
+  .login-card select, .login-card input[type="password"] {
+    width: 100%; padding: 13px 14px;
+    border: 2px solid var(--border); border-radius: 12px;
+    font-size: 16px; color: var(--text); background: var(--pink-ll);
+    -webkit-appearance: none; margin-bottom: 12px;
+  }
+  .login-card select:focus, .login-card input:focus { outline: none; border-color: var(--pink); background: white; }
+  .btn-login {
+    width: 100%; padding: 15px; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 700; cursor: pointer; color: white;
+    background: linear-gradient(135deg, var(--pink), var(--pink-d));
+    box-shadow: 0 4px 16px rgba(200,24,95,0.3); letter-spacing: 1px;
+  }
+  .login-error {
+    color: var(--pink-d); font-size: 13px; text-align: center;
+    margin-top: 10px; display: none; font-weight: 600;
+  }
+  .login-dots { display: flex; gap: 8px; justify-content: center; margin-top: 28px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* ── APP ── */
+  #app-screen { display: none; }
+  .color-stripe { height: 4px; display: flex; }
+  .color-stripe div { flex: 1; }
+
+  header {
+    background: var(--pink); color: white; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(200,24,95,0.3);
+  }
+  .header-brand { font-size: 19px; font-weight: 900; letter-spacing: 1px; }
+  .header-sub { font-size: 10px; font-weight: 400; opacity: 0.75; display: block; letter-spacing: 1px; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .user-badge { background: white; color: var(--pink); font-size: 12px; font-weight: 700; padding: 5px 13px; border-radius: 20px; }
+  .btn-logout { background: rgba(255,255,255,0.2); border: none; color: rgba(255,255,255,0.85); font-size: 11px; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+
+  .tabs {
+    display: flex; background: white; border-bottom: 2px solid var(--border);
+    position: sticky; top: 53px; z-index: 99;
+  }
+  .tab { flex: 1; padding: 12px 4px; text-align: center; font-size: 11px; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; margin-bottom: -2px; }
+  .tab.on { color: var(--pink); border-color: var(--pink); }
+
+  .page { display: none; padding: 14px; max-width: 500px; margin: 0 auto; }
+  .page.on { display: block; }
+
+  .card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(200,24,95,0.07); border: 1px solid var(--border); }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--pink); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--pink-l); display: flex; align-items: center; gap: 6px; }
+  .card-title::before { content: ''; display: block; width: 3px; height: 14px; background: var(--pink); border-radius: 2px; }
+
+  .fg { margin-bottom: 12px; }
+  .fg:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 12px; color: var(--sub); margin-bottom: 5px; font-weight: 600; }
+
+  select, input[type="text"], input[type="date"], input[type="number"] {
+    width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 15px; color: var(--text); background: var(--pink-ll); -webkit-appearance: none;
+  }
+  select:focus, input:focus { outline: none; border-color: var(--pink); background: white; }
+
+  .route-row { display: flex; gap: 8px; align-items: center; }
+  .route-input { flex: 1; position: relative; }
+  .route-badge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: white; }
+  .route-row input[type="text"] { padding-left: 40px; }
+  .count-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .count-wrap input[type="number"] { width: 58px; padding: 11px 8px; text-align: center; }
+  .count-wrap span { font-size: 13px; color: var(--sub); }
+  .preview-tag { margin-top: 5px; font-size: 12px; color: var(--pink); min-height: 16px; font-weight: 500; }
+
+  .btn { width: 100%; padding: 15px; border: none; border-radius: 13px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+  .btn:last-child { margin-bottom: 0; }
+  .btn-primary { background: linear-gradient(135deg, var(--pink), var(--pink-d)); color: white; box-shadow: 0 4px 14px rgba(200,24,95,0.28); }
+  .btn-primary:active { opacity: 0.85; }
+  .btn-primary:disabled { background: #f0b0c8; box-shadow: none; cursor: not-allowed; }
+  .btn-dl { background: linear-gradient(135deg, var(--orange), #d45f00); color: white; box-shadow: 0 4px 14px rgba(244,121,32,0.28); }
+  .btn-outline { background: white; color: var(--pink); border: 2px solid var(--pink); margin-bottom: 0; }
+
+  .week-label { font-size: 12px; color: var(--sub); margin-top: 6px; text-align: center; }
+  .pdf-preview { background: var(--pink-ll); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .pdf-preview-title { font-size: 13px; font-weight: 700; color: var(--pink-d); margin-bottom: 10px; }
+  .pdf-row { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .pdf-row:last-child { border: none; }
+  .pdf-row .day-label { font-weight: 700; color: var(--text); min-width: 55px; }
+  .pdf-row .routes { color: #666; font-size: 11px; text-align: right; max-width: 70%; }
+
+  .success-banner { background: #fff0f6; border: 1px solid #f8b8d4; border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--pink-d); margin-bottom: 12px; display: none; align-items: center; gap: 8px; }
+
+  .toast { display: none; position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 11px 22px; border-radius: 22px; font-size: 13px; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); white-space: nowrap; }
+
+  .record-card { background: white; border-radius: 13px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); border-left: 4px solid var(--pink); box-shadow: 0 1px 6px rgba(200,24,95,0.07); }
+  .record-date { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .record-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px solid var(--pink-l); }
+  .record-row:last-child { border: none; }
+  .record-row .lbl { color: var(--sub); font-size: 12px; }
+  .record-row .val { color: var(--text); font-weight: 500; max-width: 65%; text-align: right; }
+
+  .empty { text-align: center; color: #d0a0b4; padding: 50px 20px; font-size: 14px; }
+  .empty-icon { font-size: 42px; margin-bottom: 12px; }
+
+  .stats-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-box { flex: 1; background: white; border-radius: 14px; padding: 14px 10px; text-align: center; border: 1px solid var(--border); }
+  .stat-num { font-size: 26px; font-weight: 900; }
+  .stat-lbl { font-size: 10px; color: var(--sub); margin-top: 3px; font-weight: 600; }
+
+  /* 密碼輸入框的點點樣式 */
+  .pw-input { letter-spacing: 4px; font-size: 20px; }
+</style>
+</head>
+<body>
+
+<!-- 登入 -->
+<div id="login-screen">
+  <div class="login-brand">
+    <div class="login-poya">POYA 寶雅</div>
+    <div class="login-tagline">LOGISTICS · 運務管理系統</div>
+  </div>
+
+  <div class="login-card">
+    <h2>👤 登入您的帳號</h2>
+    <p>請選擇姓名並輸入您的專屬密碼</p>
+    <select id="login-name">
+      <option value="">── 請選擇姓名 ──</option>
+      <option>李憶擇</option>
+      <option>梁世昌</option>
+      <option>陳毅帆</option>
+      <option>劉哲維</option>
+      <option>趙勇德</option>
+      <option>陳冠宇</option>
+    </select>
+    <input type="password" id="login-pw" class="pw-input" placeholder="請輸入密碼" maxlength="6">
+    <button class="btn-login" onclick="doLogin()">進入系統 →</button>
+    <div class="login-error" id="login-error">❌ 密碼錯誤，請重新輸入</div>
+  </div>
+
+  <div class="login-dots">
+    <div class="dot" style="background:white;opacity:0.9"></div>
+    <div class="dot" style="background:var(--orange)"></div>
+    <div class="dot" style="background:var(--yellow)"></div>
+    <div class="dot" style="background:var(--green)"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="color-stripe">
+    <div style="background:var(--pink)"></div>
+    <div style="background:var(--orange)"></div>
+    <div style="background:var(--yellow)"></div>
+    <div style="background:var(--green)"></div>
+  </div>
+
+  <header>
+    <div>
+      <div class="header-brand">POYA 寶雅</div>
+      <span class="header-sub">運務出勤系統</span>
+    </div>
+    <div class="header-right">
+      <div class="user-badge" id="user-badge"></div>
+      <button class="btn-logout" onclick="doLogout()">登出</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" onclick="showTab('form',this)">📝 填報</div>
+    <div class="tab" onclick="showTab('download',this)">⬇️ 下載PDF</div>
+    <div class="tab" onclick="showTab('records',this)">📋 我的紀錄</div>
+  </div>
+
+  <!-- 填報 -->
+  <div class="page on" id="page-form">
+    <div class="success-banner" id="success-banner">✅ 紀錄已成功送出！</div>
+    <div class="card">
+      <div class="card-title">出勤基本資料</div>
+      <div class="fg">
+        <label>出勤日期</label>
+        <input type="date" id="date">
+      </div>
+      <div class="fg">
+        <label>車牌號碼</label>
+        <input type="text" id="plate" placeholder="例：905-2">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">配送路線區域</div>
+      <div class="fg">
+        <label>趟次一（必填）</label>
+        <div class="route-row">
+          <div class="route-input">
+            <div class="route-badge" style="background:var(--pink)">1</div>
+            <input type="text" id="r1" placeholder="路線區域名稱" oninput="updatePreview(1)">
+          </div>
+          <div class="count-wrap">
+            <input type="number" id="c1" min="0" placeholder="0" oninput="updatePreview(1)">
+            <span>間</span>
+          </div>
+        </div>
+        <div class="preview-tag" id="p1"></div>
+      </div>
+      <div class="fg">
+        <label>趟次二</label>
+        <div class="route-row">
+          <div class="route-input">
+            <div class="route-badge" style="background:var(--orange)">2</div>
+            <input type="text" id="r2" placeholder="選填" oninput="updatePreview(2)">
+          </div>
+          <div class="count-wrap">
+            <input type="number" id="c2" min="0" placeholder="0" oninput="updatePreview(2)">
+            <span>間</span>
+          </div>
+        </div>
+        <div class="preview-tag" id="p2"></div>
+      </div>
+      <div class="fg">
+        <label>趟次三</label>
+        <div class="route-row">
+          <div class="route-input">
+            <div class="route-badge" style="background:var(--green)">3</div>
+            <input type="text" id="r3" placeholder="選填" oninput="updatePreview(3)">
+          </div>
+          <div class="count-wrap">
+            <input type="number" id="c3" min="0" placeholder="0" oninput="updatePreview(3)">
+            <span>間</span>
+          </div>
+        </div>
+        <div class="preview-tag" id="p3"></div>
+      </div>
+      <div class="fg">
+        <label>趟次四</label>
+        <div class="route-row">
+          <div class="route-input">
+            <div class="route-badge" style="background:#9b59b6">4</div>
+            <input type="text" id="r4" placeholder="選填" oninput="updatePreview(4)">
+          </div>
+          <div class="count-wrap">
+            <input type="number" id="c4" min="0" placeholder="0" oninput="updatePreview(4)">
+            <span>間</span>
+          </div>
+        </div>
+        <div class="preview-tag" id="p4"></div>
+      </div>
+      <div class="fg" style="margin-top:4px">
+        <label>轉倉次數</label>
+        <input type="number" id="transfer" min="0" placeholder="選填">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">✅ 送出紀錄</button>
+  </div>
+
+  <!-- 下載PDF -->
+  <div class="page" id="page-download">
+    <div class="card">
+      <div class="card-title">下載出勤表 PDF</div>
+      <div class="fg">
+        <label>選擇週期</label>
+        <select id="dl-week" onchange="updateWeekPreview()">
+          <option value="0">本週</option>
+          <option value="1">上週</option>
+          <option value="2">上上週</option>
+          <option value="3">三週前</option>
+        </select>
+        <div class="week-label" id="week-label"></div>
+      </div>
+    </div>
+    <div class="pdf-preview" id="pdf-preview" style="display:none">
+      <div class="pdf-preview-title">📄 預覽下載內容</div>
+      <div id="preview-rows"></div>
+    </div>
+    <button class="btn btn-dl" onclick="downloadPDF()">⬇️ 下載本週出勤 PDF</button>
+    <button class="btn btn-outline" onclick="previewWeek()">👁 預覽內容</button>
+  </div>
+
+  <!-- 我的紀錄 -->
+  <div class="page" id="page-records">
+    <div id="stats-area"></div>
+    <div id="records-list">
+      <div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // 帳號密碼（每人獨立的 localStorage key）
+  const USERS = {
+    '李憶擇': '1116',
+    '梁世昌': '5888',
+    '陳毅帆': '0000',
+    '劉哲維': '5566',
+    '趙勇德': '1122',
+    '陳冠宇': '5678',
+  };
+
+  // 每個人用自己的 key 存資料，完全隔離
+  function storageKey(name) { return 'poya_records_' + name; }
+
+  let currentUser = sessionStorage.getItem('poya_user') || null;
+
+  window.onload = () => {
+    if (currentUser) showApp(); else showLogin();
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    updateWeekPreview();
+    // Enter 鍵登入
+    document.getElementById('login-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  };
+
+  function showLogin() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
+  function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('user-badge').textContent = currentUser;
+    loadMyRecords();
+  }
+  function doLogin() {
+    const name = document.getElementById('login-name').value;
+    const pw   = document.getElementById('login-pw').value;
+    const err  = document.getElementById('login-error');
+    if (!name) { err.textContent='⚠️ 請選擇姓名'; err.style.display='block'; return; }
+    if (USERS[name] !== pw) {
+      err.textContent='❌ 密碼錯誤，請重新輸入';
+      err.style.display='block';
+      document.getElementById('login-pw').value='';
+      return;
+    }
+    err.style.display='none';
+    currentUser = name;
+    sessionStorage.setItem('poya_user', name); // 關掉分頁就自動登出
+    showApp();
+  }
+  function doLogout() {
+    currentUser = null;
+    sessionStorage.removeItem('poya_user');
+    document.getElementById('login-name').value='';
+    document.getElementById('login-pw').value='';
+    showLogin();
+  }
+
+  function showTab(t, el) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach(tab=>tab.classList.remove('on'));
+    document.getElementById('page-'+t).classList.add('on');
+    el.classList.add('on');
+    if(t==='records') loadMyRecords();
+  }
+  function toast(msg) {
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.style.display='block';
+    setTimeout(()=>el.style.display='none',3000);
+  }
+  function updatePreview(n) {
+    const r=document.getElementById('r'+n).value.trim();
+    const c=document.getElementById('c'+n).value;
+    document.getElementById('p'+n).textContent = r?'預覽：'+r+(c?'（'+c+'間）':''):'';
+  }
+  function fmt(r,c){ return r?r+(c?'（'+c+'間）':''):''; }
+
+  function submitForm() {
+    const date=document.getElementById('date').value;
+    const r1=document.getElementById('r1').value.trim();
+    if(!date){toast('⚠️ 請選擇日期');return;}
+    if(!r1){toast('⚠️ 請填寫趟次一路線');return;}
+    const data={
+      name:currentUser, date,
+      plate:document.getElementById('plate').value.trim(),
+      r1:fmt(r1,document.getElementById('c1').value),
+      r2:fmt(document.getElementById('r2').value.trim(),document.getElementById('c2').value),
+      r3:fmt(document.getElementById('r3').value.trim(),document.getElementById('c3').value),
+      r4:fmt(document.getElementById('r4').value.trim(),document.getElementById('c4').value),
+      transfer:document.getElementById('transfer').value,
+      time:new Date().toLocaleString('zh-TW')
+    };
+    // 存到自己的專屬 key
+    const key=storageKey(currentUser);
+    const records=JSON.parse(localStorage.getItem(key)||'[]');
+    records.push(data);
+    localStorage.setItem(key,JSON.stringify(records));
+
+    const btn=document.getElementById('submit-btn');
+    btn.textContent='送出中...'; btn.disabled=true;
+    setTimeout(()=>{
+      btn.textContent='✅ 送出紀錄'; btn.disabled=false;
+      const b=document.getElementById('success-banner');
+      b.style.display='flex'; setTimeout(()=>b.style.display='none',3000);
+      ['r1','r2','r3','r4','c1','c2','c3','c4','transfer','plate'].forEach(id=>document.getElementById(id).value='');
+      [1,2,3,4].forEach(n=>document.getElementById('p'+n).textContent='');
+    },500);
+  }
+
+  function getWeekRange(offset){
+    const now=new Date(),day=now.getDay();
+    const mon=new Date(now);
+    mon.setDate(now.getDate()-(day===0?6:day-1)-offset*7); mon.setHours(0,0,0,0);
+    const sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
+    return{start:mon,end:sun};
+  }
+  function fmtDate(d){return d.toISOString().split('T')[0];}
+  function updateWeekPreview(){
+    const{start,end}=getWeekRange(parseInt(document.getElementById('dl-week').value));
+    document.getElementById('week-label').textContent=fmtDate(start)+' ～ '+fmtDate(end);
+  }
+  function getMyWeekRecords(){
+    const{start,end}=getWeekRange(parseInt(document.getElementById('dl-week').value));
+    return JSON.parse(localStorage.getItem(storageKey(currentUser))||'[]')
+      .filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;})
+      .sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  function previewWeek(){
+    const records=getMyWeekRecords();
+    document.getElementById('preview-rows').innerHTML=records.length===0
+      ?'<div style="text-align:center;color:#d0a0b4;padding:16px;font-size:13px">本週尚無紀錄</div>'
+      :records.map(r=>`<div class="pdf-row"><span class="day-label">${r.date.slice(5)}</span><span class="routes">${[r.r1,r.r2,r.r3,r.r4].filter(Boolean).join(' / ')}${r.transfer?' ｜轉倉'+r.transfer:''}</span></div>`).join('');
+    document.getElementById('pdf-preview').style.display='block';
+  }
+  function downloadPDF(){
+    const offset=parseInt(document.getElementById('dl-week').value);
+    const{start,end}=getWeekRange(offset);
+    const records=getMyWeekRecords();
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const rocYear=start.getFullYear()-1911;
+    const month=String(start.getMonth()+1).padStart(2,'0');
+    doc.setFontSize(14);doc.setFont('helvetica','bold');
+    doc.text(rocYear+'\u5e74'+month+'\u6708\u51fa\u52e4\u8868\uff08\u5bf6\u96c5\uff09',148,13,{align:'center'});
+    doc.setFontSize(9);doc.setFont('helvetica','normal');
+    doc.text('\u904b\u52d9\u58eb\uff1a'+currentUser,275,10,{align:'right'});
+    doc.text(fmtDate(start)+' ~ '+fmtDate(end),275,16,{align:'right'});
+    const days=[];
+    for(let i=0;i<7;i++){
+      const d=new Date(start);d.setDate(start.getDate()+i);
+      const ds=fmtDate(d),rec=records.find(r=>r.date===ds);
+      days.push({ds,rec,isSun:d.getDay()===0});
+    }
+    doc.autoTable({
+      startY:20,
+      head:[['\u65e5\u671f','\u914d\u9001\u8da3\u6b21\u4e00\uff08\u8def\u7dda\u5340\u57df\uff09','\u914d\u9001\u8da3\u6b21\u4e8c\uff08\u8def\u7dda\u5340\u57df\uff09','\u914d\u9001\u8da3\u6b21\u4e09\uff08\u8def\u7dda\u5340\u57df\uff09','\u914d\u9001\u8da3\u6b21\u56db\uff08\u8def\u7dda\u5340\u57df\uff09','\u8f49\u5009','\u8eca\u724c\u865f\u78bc']],
+      body:days.map(({ds,rec})=>[ds.slice(5),rec?rec.r1||'':'',rec?rec.r2||'':'',rec?rec.r3||'':'',rec?rec.r4||'':'',rec?rec.transfer||'':'',rec?rec.plate||'':'']),
+      theme:'grid',
+      headStyles:{fillColor:[232,49,122],textColor:[255,255,255],fontStyle:'bold',fontSize:8,halign:'center',valign:'middle'},
+      bodyStyles:{fontSize:8,cellPadding:3,valign:'middle',minCellHeight:14},
+      columnStyles:{0:{halign:'center',cellWidth:12},1:{cellWidth:"auto"},2:{cellWidth:"auto"},3:{cellWidth:"auto"},4:{cellWidth:"auto"},5:{halign:'center',cellWidth:10},6:{halign:'center',cellWidth:14}},
+      didParseCell:(data)=>{if(data.section==='body'&&days[data.row.index]?.isSun)data.cell.styles.fillColor=[220,220,220];},
+      foot:[[{content:'\u7e3d\u8da3\u6b21\uff1a'+records.length,colSpan:2,styles:{fontSize:8}},{content:'\u8f49\u5009\uff1a'+records.reduce((s,r)=>s+(parseInt(r.transfer)||0),0)+'\u6b21',colSpan:2,styles:{fontSize:8}},{content:'',colSpan:3}]],
+      footStyles:{fillColor:[255,240,248],textColor:[0,0,0],fontSize:8},
+      tableWidth:281,
+      margin:{left:8,right:8},
+    });
+    // 直接導向 PDF datauri，Safari 會顯示 PDF 預覽，可分享或儲存
+    const pdfOutput = doc.output('datauristring');
+    window.location.href = pdfOutput;
+  }
+
+  function loadMyRecords(){
+    const records=JSON.parse(localStorage.getItem(storageKey(currentUser))||'[]').reverse();
+    const{start,end}=getWeekRange(0);
+    const thisWeek=records.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).length;
+    const totalTransfer=records.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
+    document.getElementById('stats-area').innerHTML=`
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-num" style="color:var(--pink)">${records.length}</div><div class="stat-lbl">總出勤天數</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${thisWeek}</div><div class="stat-lbl">本週趟數</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--green)">${totalTransfer}</div><div class="stat-lbl">累計轉倉</div></div>
+      </div>`;
+    const list=document.getElementById('records-list');
+    if(records.length===0){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄<br><span style="font-size:12px;display:block;margin-top:8px">填報完成後會顯示在這裡</span></div>';return;}
+    list.innerHTML=records.map(r=>`
+      <div class="record-card">
+        <div class="record-date">📅 ${r.date}</div>
+        ${r.r1?`<div class="record-row"><span class="lbl">趟次一</span><span class="val">${r.r1}</span></div>`:''}
+        ${r.r2?`<div class="record-row"><span class="lbl">趟次二</span><span class="val">${r.r2}</span></div>`:''}
+        ${r.r3?`<div class="record-row"><span class="lbl">趟次三</span><span class="val">${r.r3}</span></div>`:''}
+        ${r.r4?`<div class="record-row"><span class="lbl">趟次四</span><span class="val">${r.r4}</span></div>`:''}
+        ${r.transfer?`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer} 次</span></div>`:''}
+        ${r.plate?`<div class="record-row"><span class="lbl">車牌</span><span class="val">${r.plate}</span></div>`:''}
+      </div>`).join('');
+  }
+</script>
+</body>
+</html>
