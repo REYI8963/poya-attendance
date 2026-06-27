@@ -72,7 +72,7 @@
   .btn-primary:active { opacity:0.85; }
   .btn-primary:disabled { background:#f0b0c8; box-shadow:none; }
   .btn-dl { background:linear-gradient(135deg,var(--orange),#d45f00); color:white; }
-  .btn-outline { background:white; color:var(--pink); border:2px solid var(--pink); margin-bottom:8px; }
+  .btn-outline { background:white; color:var(--pink); border:2px solid var(--pink); margin-bottom:8px; box-sizing:border-box; }
   .btn-danger { background:white; color:#e74c3c; border:2px solid #e74c3c; font-size:13px; padding:10px; }
   .btn-edit { background:white; color:var(--green); border:2px solid var(--green); font-size:13px; padding:10px; }
 
@@ -94,7 +94,7 @@
   .record-row .lbl { color:var(--sub); font-size:12px; }
   .record-row .val { color:var(--text); font-weight:500; max-width:65%; text-align:right; }
   .record-actions { display:flex; gap:8px; margin-top:10px; }
-  .record-actions button { flex:1; }
+  .record-actions button { flex:1; box-sizing:border-box; }
 
   .empty { text-align:center; color:#d0a0b4; padding:40px 20px; font-size:14px; }
   .empty-icon { font-size:40px; margin-bottom:10px; }
@@ -126,7 +126,7 @@
   .modal { background:white; border-radius:20px; padding:24px; width:100%; max-width:420px; margin:auto; }
   .modal h3 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:16px; }
   .modal-actions { display:flex; gap:8px; margin-top:16px; }
-  .modal-actions button { flex:1; padding:15px; font-size:15px; font-weight:700; border-radius:13px; border:none; cursor:pointer; }
+  .modal-actions .btn { flex:1; padding:14px; font-size:15px; font-weight:700; border-radius:13px; cursor:pointer; margin-bottom:0; }
   .modal .fg { margin-bottom:10px; }
   .modal input { background:var(--pink-ll); }
 
