@@ -14,7 +14,6 @@
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:-apple-system,'Helvetica Neue',sans-serif; background:var(--bg) !important; min-height:100vh; color:var(--text); color-scheme:light only; }
 
-  /* LOGIN */
   #login-screen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 24px; background:linear-gradient(160deg,var(--pink-d) 0%,var(--pink) 55%,#f06090 100%); }
   .login-poya { font-size:42px; font-weight:900; letter-spacing:3px; color:white; text-align:center; }
   .login-tagline { color:rgba(255,255,255,0.75); font-size:12px; letter-spacing:4px; margin-top:6px; text-align:center; margin-bottom:36px; }
@@ -23,12 +22,11 @@
   .login-card p { font-size:12px; color:var(--sub); margin-bottom:20px; }
   .login-card select, .login-card input[type="password"] { width:100%; padding:13px 14px; border:2px solid var(--border); border-radius:12px; font-size:16px; color:var(--text); background:var(--pink-ll); -webkit-appearance:none; margin-bottom:12px; }
   .login-card select:focus, .login-card input:focus { outline:none; border-color:var(--pink); background:white; }
-  .btn-login { width:100%; padding:15px; border:none; border-radius:14px; font-size:16px; font-weight:700; cursor:pointer; color:white; background:linear-gradient(135deg,var(--pink),var(--pink-d)); box-shadow:0 4px 16px rgba(200,24,95,0.3); }
+  .btn-login { width:100%; padding:15px; border:none; border-radius:14px; font-size:16px; font-weight:700; cursor:pointer; color:white; background:linear-gradient(135deg,var(--pink),var(--pink-d)); }
   .login-error { color:var(--pink-d); font-size:13px; text-align:center; margin-top:10px; display:none; font-weight:600; }
   .login-dots { display:flex; gap:8px; justify-content:center; margin-top:28px; }
   .dot { width:9px; height:9px; border-radius:50%; }
 
-  /* APP */
   #app-screen { display:none; }
   .color-stripe { height:4px; display:flex; }
   .color-stripe div { flex:1; }
@@ -40,7 +38,7 @@
   .btn-logout { background:rgba(255,255,255,0.2); border:none; color:rgba(255,255,255,0.85); font-size:11px; padding:5px 10px; border-radius:8px; cursor:pointer; }
 
   .tabs { display:flex; background:white; border-bottom:2px solid var(--border); position:sticky; top:53px; z-index:99; overflow-x:auto; }
-  .tab { flex:0 0 auto; padding:12px 12px; text-align:center; font-size:11px; color:var(--sub); cursor:pointer; border-bottom:3px solid transparent; font-weight:600; margin-bottom:-2px; white-space:nowrap; }
+  .tab { flex:0 0 auto; padding:11px 10px; text-align:center; font-size:11px; color:var(--sub); cursor:pointer; border-bottom:3px solid transparent; font-weight:600; margin-bottom:-2px; white-space:nowrap; }
   .tab.on { color:var(--pink); border-color:var(--pink); }
 
   .page { display:none; padding:14px; max-width:500px; margin:0 auto; }
@@ -53,22 +51,20 @@
   .fg { margin-bottom:12px; }
   .fg:last-child { margin-bottom:0; }
   label { display:block; font-size:12px; color:var(--sub); margin-bottom:5px; font-weight:600; }
-  select, input[type="text"], input[type="date"], input[type="number"] { width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; color:var(--text); background:var(--pink-ll); -webkit-appearance:none; }
+  select, input[type="text"], input[type="date"], input[type="number"], input[type="month"] { width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; color:var(--text); background:var(--pink-ll); -webkit-appearance:none; }
   select:focus, input:focus { outline:none; border-color:var(--pink); background:white; }
 
-  .route-row { display:flex; gap:8px; align-items:center; }
-  .route-input { flex:1; position:relative; }
-  .route-badge { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; color:white; }
-  .route-row input[type="text"] { padding-left:40px; }
-  .count-wrap { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+  .route-row { display:flex; gap:8px; align-items:flex-start; }
+  .route-input { flex:1; }
+  .route-input input { width:100%; }
+  .count-wrap { display:flex; align-items:center; gap:4px; flex-shrink:0; padding-top:0; }
   .count-wrap input[type="number"] { width:58px; padding:11px 8px; text-align:center; }
   .count-wrap span { font-size:13px; color:var(--sub); }
-  .preview-tag { margin-top:5px; font-size:12px; color:var(--pink); min-height:16px; font-weight:500; }
 
-  /* 區域選擇 */
-  .area-select { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
-  .area-btn { padding:6px 12px; border:1.5px solid var(--border); border-radius:20px; font-size:12px; font-weight:600; background:white; color:var(--sub); cursor:pointer; }
-  .area-btn.on { border-color:var(--pink); background:var(--pink-ll); color:var(--pink); }
+  .area-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+  .chip { padding:4px 10px; border:1.5px solid var(--border); border-radius:16px; font-size:11px; font-weight:600; background:white; color:var(--sub); cursor:pointer; white-space:nowrap; }
+  .chip.on { border-color:var(--pink); background:var(--pink-ll); color:var(--pink); }
+  .preview-tag { margin-top:5px; font-size:12px; color:var(--pink); min-height:16px; font-weight:500; }
 
   .btn { width:100%; padding:15px; border:none; border-radius:13px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:8px; }
   .btn:last-child { margin-bottom:0; }
@@ -89,9 +85,8 @@
   .pdf-row .routes { color:#666; font-size:11px; text-align:right; max-width:70%; }
 
   .success-banner { background:#fff0f6; border:1px solid #f8b8d4; border-radius:12px; padding:12px 16px; font-size:13px; color:var(--pink-d); margin-bottom:12px; display:none; align-items:center; gap:8px; }
-  .toast { display:none; position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:var(--text); color:white; padding:11px 22px; border-radius:22px; font-size:13px; z-index:999; white-space:nowrap; }
+  .toast { display:none; position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:var(--text); color:white; padding:11px 22px; border-radius:22px; font-size:13px; z-index:999; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
 
-  /* RECORDS */
   .record-card { background:white; border-radius:13px; padding:14px; margin-bottom:10px; border:1px solid var(--border); border-left:4px solid var(--pink); }
   .record-date { font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
   .record-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid var(--pink-l); }
@@ -109,15 +104,14 @@
   .stat-num { font-size:24px; font-weight:900; }
   .stat-lbl { font-size:10px; color:var(--sub); margin-top:3px; font-weight:600; }
 
-  /* CALENDAR */
+  /* 月曆 */
   .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .cal-title { font-size:15px; font-weight:700; color:var(--text); }
   .cal-nav { background:none; border:1.5px solid var(--border); border-radius:8px; padding:6px 12px; font-size:14px; color:var(--pink); cursor:pointer; font-weight:700; }
   .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
   .cal-dow { text-align:center; font-size:10px; font-weight:700; color:var(--sub); padding:4px 0; }
-  .cal-dow:first-child { color:#e74c3c; }
-  .cal-dow:last-child { color:#e74c3c; }
-  .cal-day { background:white; border:1px solid var(--border); border-radius:8px; padding:4px 3px; min-height:52px; cursor:pointer; position:relative; }
+  .cal-dow:first-child,.cal-dow:last-child { color:#e74c3c; }
+  .cal-day { background:white; border:1px solid var(--border); border-radius:8px; padding:4px 3px; min-height:50px; cursor:pointer; }
   .cal-day.empty-day { background:transparent; border:none; }
   .cal-day.sunday { background:#fff0f0; }
   .cal-day.today { border-color:var(--pink); border-width:2px; }
@@ -126,13 +120,15 @@
   .cal-day.sunday .cal-day-num { color:#e74c3c; }
   .cal-trip { font-size:9px; color:var(--pink); font-weight:700; margin-top:2px; line-height:1.2; }
 
-  /* EDIT MODAL */
-  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; padding:20px; }
+  /* Modal */
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto; }
   .modal-bg.show { display:flex; }
-  .modal { background:white; border-radius:20px; padding:24px; width:100%; max-width:400px; max-height:80vh; overflow-y:auto; }
+  .modal { background:white; border-radius:20px; padding:24px; width:100%; max-width:420px; margin:auto; }
   .modal h3 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:16px; }
   .modal-actions { display:flex; gap:8px; margin-top:16px; }
   .modal-actions button { flex:1; }
+  .modal .fg { margin-bottom:10px; }
+  .modal input { background:var(--pink-ll); }
 </style>
 </head>
 <body>
@@ -151,7 +147,7 @@
     </select>
     <input type="password" id="login-pw" placeholder="請輸入密碼" maxlength="6" style="letter-spacing:4px;font-size:20px">
     <button class="btn-login" onclick="doLogin()">進入系統 →</button>
-    <div class="login-error" id="login-error">❌ 密碼錯誤，請重新輸入</div>
+    <div class="login-error" id="login-error"></div>
   </div>
   <div class="login-dots">
     <div class="dot" style="background:white;opacity:0.9"></div>
@@ -175,10 +171,10 @@
     </div>
   </header>
   <div class="tabs">
-    <div class="tab on" onclick="showTab('form',this)">📝 填報</div>
-    <div class="tab" onclick="showTab('calendar',this)">📅 月曆</div>
-    <div class="tab" onclick="showTab('download',this)">⬇️ 匯出</div>
-    <div class="tab" onclick="showTab('records',this)">📋 紀錄</div>
+    <div class="tab on" onclick="showTab('form',this)">📝 出勤趟數回報</div>
+    <div class="tab" onclick="showTab('records',this)">📋 出勤紀錄</div>
+    <div class="tab" onclick="showTab('calendar',this)">📅 出勤月曆</div>
+    <div class="tab" onclick="showTab('download',this)">⬇️ PDF匯出</div>
   </div>
 
   <!-- 填報 -->
@@ -191,80 +187,30 @@
     </div>
     <div class="card">
       <div class="card-title">配送路線區域</div>
+      <!-- 趟次 1~6 -->
+      <div id="routes-container"></div>
+      <div class="fg" style="margin-top:8px"><label>轉倉次數</label><input type="number" id="transfer" min="0" placeholder="選填"></div>
       <div class="fg">
-        <label>趟次一（必填）</label>
-        <div class="route-row">
-          <div class="route-input">
-            <div class="route-badge" style="background:var(--pink)">1</div>
-            <input type="text" id="r1" placeholder="路線區域名稱" oninput="updatePreview(1)">
-          </div>
-          <div class="count-wrap"><input type="number" id="c1" min="0" placeholder="0" oninput="updatePreview(1)"><span>間</span></div>
+        <label>廠提區域</label>
+        <div class="area-chips" id="factory-chips">
+          <button class="chip" onclick="setFactory('台南')">台南</button>
+          <button class="chip" onclick="setFactory('台中')">台中</button>
+          <button class="chip" onclick="setFactory('無')">無</button>
         </div>
-        <div class="area-select" id="area1">
-          <button class="area-btn" onclick="setArea(1,'雲林')">雲林</button>
-          <button class="area-btn" onclick="setArea(1,'嘉義')">嘉義</button>
-          <button class="area-btn" onclick="setArea(1,'台南')">台南</button>
-          <button class="area-btn" onclick="setArea(1,'高雄')">高雄</button>
-        </div>
-        <div class="preview-tag" id="p1"></div>
+        <input type="hidden" id="factory-area">
+        <div class="preview-tag" id="factory-preview"></div>
       </div>
-      <div class="fg">
-        <label>趟次二</label>
-        <div class="route-row">
-          <div class="route-input">
-            <div class="route-badge" style="background:var(--orange)">2</div>
-            <input type="text" id="r2" placeholder="選填" oninput="updatePreview(2)">
-          </div>
-          <div class="count-wrap"><input type="number" id="c2" min="0" placeholder="0" oninput="updatePreview(2)"><span>間</span></div>
-        </div>
-        <div class="area-select" id="area2">
-          <button class="area-btn" onclick="setArea(2,'雲林')">雲林</button>
-          <button class="area-btn" onclick="setArea(2,'嘉義')">嘉義</button>
-          <button class="area-btn" onclick="setArea(2,'台南')">台南</button>
-          <button class="area-btn" onclick="setArea(2,'高雄')">高雄</button>
-        </div>
-        <div class="preview-tag" id="p2"></div>
-      </div>
-      <div class="fg">
-        <label>趟次三</label>
-        <div class="route-row">
-          <div class="route-input">
-            <div class="route-badge" style="background:var(--green)">3</div>
-            <input type="text" id="r3" placeholder="選填" oninput="updatePreview(3)">
-          </div>
-          <div class="count-wrap"><input type="number" id="c3" min="0" placeholder="0" oninput="updatePreview(3)"><span>間</span></div>
-        </div>
-        <div class="area-select" id="area3">
-          <button class="area-btn" onclick="setArea(3,'雲林')">雲林</button>
-          <button class="area-btn" onclick="setArea(3,'嘉義')">嘉義</button>
-          <button class="area-btn" onclick="setArea(3,'台南')">台南</button>
-          <button class="area-btn" onclick="setArea(3,'高雄')">高雄</button>
-        </div>
-        <div class="preview-tag" id="p3"></div>
-      </div>
-      <div class="fg">
-        <label>趟次四</label>
-        <div class="route-row">
-          <div class="route-input">
-            <div class="route-badge" style="background:#9b59b6">4</div>
-            <input type="text" id="r4" placeholder="選填" oninput="updatePreview(4)">
-          </div>
-          <div class="count-wrap"><input type="number" id="c4" min="0" placeholder="0" oninput="updatePreview(4)"><span>間</span></div>
-        </div>
-        <div class="area-select" id="area4">
-          <button class="area-btn" onclick="setArea(4,'雲林')">雲林</button>
-          <button class="area-btn" onclick="setArea(4,'嘉義')">嘉義</button>
-          <button class="area-btn" onclick="setArea(4,'台南')">台南</button>
-          <button class="area-btn" onclick="setArea(4,'高雄')">高雄</button>
-        </div>
-        <div class="preview-tag" id="p4"></div>
-      </div>
-      <div class="fg" style="margin-top:4px"><label>轉倉次數</label><input type="number" id="transfer" min="0" placeholder="選填"></div>
     </div>
     <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">✅ 送出紀錄</button>
   </div>
 
-  <!-- 月曆 -->
+  <!-- 出勤紀錄 -->
+  <div class="page" id="page-records">
+    <div id="stats-area"></div>
+    <div id="records-list"><div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div></div>
+  </div>
+
+  <!-- 出勤月曆 -->
   <div class="page" id="page-calendar">
     <div class="card">
       <div class="cal-header">
@@ -277,27 +223,27 @@
     <div id="cal-detail"></div>
   </div>
 
-  <!-- 匯出 -->
+  <!-- PDF匯出 -->
   <div class="page" id="page-download">
     <div class="card">
-      <div class="card-title">匯出出勤表</div>
+      <div class="card-title">PDF匯出設定</div>
       <div class="fg">
         <label>匯出類型</label>
         <select id="export-type" onchange="toggleExportType()">
-          <option value="week">週報（選擇週期）</option>
-          <option value="month">月報（整月）</option>
+          <option value="ten">10天週期</option>
+          <option value="month">整月月報</option>
         </select>
       </div>
-      <div id="week-options">
+      <div id="ten-options">
         <div class="fg">
           <label>選擇週期</label>
-          <select id="dl-week" onchange="updateWeekPreview()">
-            <option value="0">本週</option>
-            <option value="1">上週</option>
-            <option value="2">上上週</option>
-            <option value="3">三週前</option>
+          <select id="dl-ten" onchange="updateTenPreview()">
+            <option value="0">本期（最近10天）</option>
+            <option value="1">上一期</option>
+            <option value="2">上上期</option>
+            <option value="3">三期前</option>
           </select>
-          <div class="week-label" id="week-label"></div>
+          <div class="week-label" id="ten-label"></div>
         </div>
       </div>
       <div id="month-options" style="display:none">
@@ -314,12 +260,6 @@
     <button class="btn btn-dl" onclick="exportPDF()">🖨️ 列印 / 儲存為 PDF</button>
     <button class="btn btn-outline" onclick="previewExport()">👁 預覽內容</button>
   </div>
-
-  <!-- 紀錄 -->
-  <div class="page" id="page-records">
-    <div id="stats-area"></div>
-    <div id="records-list"><div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div></div>
-  </div>
 </div>
 
 <!-- 編輯 Modal -->
@@ -329,35 +269,17 @@
     <input type="hidden" id="edit-idx">
     <div class="fg"><label>日期</label><input type="date" id="edit-date"></div>
     <div class="fg"><label>車牌</label><input type="text" id="edit-plate" placeholder="例：905-2"></div>
-    <div class="fg"><label>趟次一</label>
-      <div class="route-row">
-        <input type="text" id="edit-r1" placeholder="路線區域名稱" style="flex:1">
-        <div class="count-wrap" style="margin-left:8px"><input type="number" id="edit-c1" min="0" placeholder="0" style="width:58px"><span>間</span></div>
-      </div>
-      <div class="area-select"><button class="area-btn" onclick="setEditArea(1,'雲林')">雲林</button><button class="area-btn" onclick="setEditArea(1,'嘉義')">嘉義</button><button class="area-btn" onclick="setEditArea(1,'台南')">台南</button><button class="area-btn" onclick="setEditArea(1,'高雄')">高雄</button></div>
-    </div>
-    <div class="fg"><label>趟次二</label>
-      <div class="route-row">
-        <input type="text" id="edit-r2" placeholder="選填" style="flex:1">
-        <div class="count-wrap" style="margin-left:8px"><input type="number" id="edit-c2" min="0" placeholder="0" style="width:58px"><span>間</span></div>
-      </div>
-      <div class="area-select"><button class="area-btn" onclick="setEditArea(2,'雲林')">雲林</button><button class="area-btn" onclick="setEditArea(2,'嘉義')">嘉義</button><button class="area-btn" onclick="setEditArea(2,'台南')">台南</button><button class="area-btn" onclick="setEditArea(2,'高雄')">高雄</button></div>
-    </div>
-    <div class="fg"><label>趟次三</label>
-      <div class="route-row">
-        <input type="text" id="edit-r3" placeholder="選填" style="flex:1">
-        <div class="count-wrap" style="margin-left:8px"><input type="number" id="edit-c3" min="0" placeholder="0" style="width:58px"><span>間</span></div>
-      </div>
-      <div class="area-select"><button class="area-btn" onclick="setEditArea(3,'雲林')">雲林</button><button class="area-btn" onclick="setEditArea(3,'嘉義')">嘉義</button><button class="area-btn" onclick="setEditArea(3,'台南')">台南</button><button class="area-btn" onclick="setEditArea(3,'高雄')">高雄</button></div>
-    </div>
-    <div class="fg"><label>趟次四</label>
-      <div class="route-row">
-        <input type="text" id="edit-r4" placeholder="選填" style="flex:1">
-        <div class="count-wrap" style="margin-left:8px"><input type="number" id="edit-c4" min="0" placeholder="0" style="width:58px"><span>間</span></div>
-      </div>
-      <div class="area-select"><button class="area-btn" onclick="setEditArea(4,'雲林')">雲林</button><button class="area-btn" onclick="setEditArea(4,'嘉義')">嘉義</button><button class="area-btn" onclick="setEditArea(4,'台南')">台南</button><button class="area-btn" onclick="setEditArea(4,'高雄')">高雄</button></div>
-    </div>
+    <div id="edit-routes-container"></div>
     <div class="fg"><label>轉倉次數</label><input type="number" id="edit-transfer" min="0" placeholder="選填"></div>
+    <div class="fg">
+      <label>廠提區域</label>
+      <div class="area-chips" id="edit-factory-chips">
+        <button class="chip" onclick="setEditFactory('台南')">台南</button>
+        <button class="chip" onclick="setEditFactory('台中')">台中</button>
+        <button class="chip" onclick="setEditFactory('無')">無</button>
+      </div>
+      <input type="hidden" id="edit-factory-area">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="saveEdit()">💾 儲存</button>
       <button class="btn btn-outline" onclick="closeModal()">取消</button>
@@ -370,351 +292,362 @@
 <script>
 const USERS = {'李憶擇':'1116','梁世昌':'5888','陳毅帆':'0000','劉哲維':'5566','陳勇德':'1122','陳冠宇':'5678'};
 const AREAS = ['雲林','嘉義','台南','高雄'];
+const ROUTE_COLORS = ['#e8317a','#f47920','#3aaa35','#9b59b6','#1a73e8','#e67e22'];
+const ROUTE_COUNT = 6;
 let currentUser = sessionStorage.getItem('poya_user') || null;
 let calYear, calMonth;
 
-function skey(u) { return 'poya_records_' + u; }
-function getRecords() { return JSON.parse(localStorage.getItem(skey(currentUser)) || '[]'); }
-function saveRecords(r) { localStorage.setItem(skey(currentUser), JSON.stringify(r)); }
+function skey(u){ return 'poya_records_'+u; }
+function getRecords(){ return JSON.parse(localStorage.getItem(skey(currentUser))||'[]'); }
+function saveRecords(r){ localStorage.setItem(skey(currentUser),JSON.stringify(r)); }
 
-window.onload = () => {
-  if (currentUser) showApp(); else showLogin();
-  const now = new Date();
-  document.getElementById('date').value = now.toISOString().split('T')[0];
-  document.getElementById('dl-month').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  calYear = now.getFullYear(); calMonth = now.getMonth();
-  updateWeekPreview();
-  document.getElementById('login-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+// 建立趟次輸入欄位
+function buildRouteInputs(container, prefix, count) {
+  let html = '';
+  for(let n=1;n<=count;n++){
+    html += `<div class="fg">
+      <label>趟次${n}${n===1?' （必填）':''}</label>
+      <div class="route-row">
+        <div class="route-input">
+          <input type="text" id="${prefix}r${n}" placeholder="${n===1?'路線區域名稱':'選填'}" oninput="syncChips('${prefix}',${n})">
+        </div>
+        <div class="count-wrap" style="margin-left:8px">
+          <input type="number" id="${prefix}c${n}" min="0" placeholder="0" oninput="updatePreviewTag('${prefix}',${n})" style="width:58px">
+          <span>間</span>
+        </div>
+      </div>
+      <div class="area-chips" id="${prefix}area${n}">
+        ${AREAS.map(a=>`<button class="chip" onclick="setAreaChip('${prefix}',${n},'${a}')">${a}</button>`).join('')}
+      </div>
+      <div class="preview-tag" id="${prefix}p${n}"></div>
+    </div>`;
+  }
+  document.getElementById(container).innerHTML = html;
+}
+
+function syncChips(prefix, n){
+  const val = document.getElementById(prefix+'r'+n).value.trim();
+  document.querySelectorAll(`#${prefix}area${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===val));
+  updatePreviewTag(prefix,n);
+}
+function updatePreviewTag(prefix,n){
+  const r=document.getElementById(prefix+'r'+n).value.trim(), c=document.getElementById(prefix+'c'+n).value;
+  const el=document.getElementById(prefix+'p'+n);
+  if(el) el.textContent = r?'預覽：'+r+(c?'（'+c+'間）':''):'';
+}
+function setAreaChip(prefix,n,area){
+  document.getElementById(prefix+'r'+n).value=area;
+  document.querySelectorAll(`#${prefix}area${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===area));
+  updatePreviewTag(prefix,n);
+}
+
+// 廠提
+function setFactory(area){
+  document.getElementById('factory-area').value=area==='無'?'':area;
+  document.querySelectorAll('#factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===area));
+  document.getElementById('factory-preview').textContent=area==='無'?'':('廠提：'+area);
+}
+function setEditFactory(area){
+  document.getElementById('edit-factory-area').value=area==='無'?'':area;
+  document.querySelectorAll('#edit-factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===area));
+}
+
+function fmt(r,c){ return r?r+(c?'（'+c+'間）':''):''; }
+function parseRoute(str){
+  if(!str) return {route:'',count:0};
+  const m=str.match(/^(.+?)（(\d+)間）$/);
+  if(m) return{route:m[1].trim(),count:parseInt(m[2])};
+  return{route:str.trim(),count:0};
+}
+
+window.onload = ()=>{
+  if(currentUser) showApp(); else showLogin();
+  const now=new Date();
+  document.getElementById('date').value=now.toISOString().split('T')[0];
+  document.getElementById('dl-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  calYear=now.getFullYear(); calMonth=now.getMonth();
+  updateTenPreview();
+  document.getElementById('login-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 };
 
-function showLogin() { document.getElementById('login-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
-function showApp() { document.getElementById('login-screen').style.display='none'; document.getElementById('app-screen').style.display='block'; document.getElementById('user-badge').textContent=currentUser; loadMyRecords(); }
-function doLogin() {
+function showLogin(){ document.getElementById('login-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('user-badge').textContent=currentUser;
+  buildRouteInputs('routes-container','',ROUTE_COUNT);
+  buildRouteInputs('edit-routes-container','edit-',ROUTE_COUNT);
+  loadMyRecords();
+}
+function doLogin(){
   const name=document.getElementById('login-name').value, pw=document.getElementById('login-pw').value, err=document.getElementById('login-error');
   if(!name){err.textContent='⚠️ 請選擇姓名';err.style.display='block';return;}
   if(USERS[name]!==pw){err.textContent='❌ 密碼錯誤，請重新輸入';err.style.display='block';document.getElementById('login-pw').value='';return;}
   err.style.display='none'; currentUser=name; sessionStorage.setItem('poya_user',name); showApp();
 }
-function doLogout() { currentUser=null; sessionStorage.removeItem('poya_user'); document.getElementById('login-name').value=''; document.getElementById('login-pw').value=''; showLogin(); }
+function doLogout(){ currentUser=null; sessionStorage.removeItem('poya_user'); document.getElementById('login-name').value=''; document.getElementById('login-pw').value=''; showLogin(); }
 
-function showTab(t,el) {
+function showTab(t,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(tab=>tab.classList.remove('on'));
   document.getElementById('page-'+t).classList.add('on'); el.classList.add('on');
   if(t==='records') loadMyRecords();
   if(t==='calendar') renderCalendar();
 }
-function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
 
-// 區域選擇
-function setArea(n, area) {
-  const input = document.getElementById('r'+n);
-  input.value = area;
-  document.querySelectorAll('#area'+n+' .area-btn').forEach(b => b.classList.toggle('on', b.textContent===area));
-  updatePreview(n);
-}
-function setEditArea(n, area) {
-  document.getElementById('edit-r'+n).value = area;
-  const parent = document.getElementById('edit-r'+n).closest('.fg');
-  parent.querySelectorAll('.area-btn').forEach(b => b.classList.toggle('on', b.textContent===area));
-}
-
-function updatePreview(n) {
-  const r=document.getElementById('r'+n).value.trim(), c=document.getElementById('c'+n).value;
-  document.getElementById('p'+n).textContent = r ? '預覽：'+r+(c?'（'+c+'間）':'') : '';
-  // 同步區域按鈕高亮
-  document.querySelectorAll('#area'+n+' .area-btn').forEach(b=>b.classList.toggle('on',b.textContent===r));
-}
-
-function parseRoute(str) {
-  // 解析 "台南（5間）" => {route:'台南', count:5}
-  const m = str.match(/^(.+?)（(\d+)間）$/);
-  if(m) return {route:m[1].trim(), count:parseInt(m[2])};
-  return {route:str.trim(), count:0};
-}
-function fmt(r,c){ return r?r+(c?'（'+c+'間）':''):''; }
-
-function submitForm() {
-  const date=document.getElementById('date').value, r1=document.getElementById('r1').value.trim();
+function submitForm(){
+  const date=document.getElementById('date').value;
+  const r1=document.getElementById('r1').value.trim();
   if(!date){toast('⚠️ 請選擇日期');return;}
   if(!r1){toast('⚠️ 請填寫趟次一路線');return;}
-  const data = {
-    name:currentUser, date,
-    plate:document.getElementById('plate').value.trim(),
-    r1:fmt(r1,document.getElementById('c1').value),
-    r2:fmt(document.getElementById('r2').value.trim(),document.getElementById('c2').value),
-    r3:fmt(document.getElementById('r3').value.trim(),document.getElementById('c3').value),
-    r4:fmt(document.getElementById('r4').value.trim(),document.getElementById('c4').value),
-    transfer:document.getElementById('transfer').value,
-    time:new Date().toLocaleString('zh-TW')
-  };
+  const data={name:currentUser,date,plate:document.getElementById('plate').value.trim(),transfer:document.getElementById('transfer').value,factory:document.getElementById('factory-area').value,time:new Date().toLocaleString('zh-TW')};
+  for(let n=1;n<=ROUTE_COUNT;n++) data['r'+n]=fmt(document.getElementById('r'+n).value.trim(),document.getElementById('c'+n).value);
   const records=getRecords(); records.push(data); saveRecords(records);
   const btn=document.getElementById('submit-btn');
   btn.textContent='送出中...'; btn.disabled=true;
   setTimeout(()=>{
     btn.textContent='✅ 送出紀錄'; btn.disabled=false;
     const b=document.getElementById('success-banner'); b.style.display='flex'; setTimeout(()=>b.style.display='none',3000);
-    ['r1','r2','r3','r4','c1','c2','c3','c4','transfer','plate'].forEach(id=>document.getElementById(id).value='');
-    [1,2,3,4].forEach(n=>{document.getElementById('p'+n).textContent=''; document.querySelectorAll('#area'+n+' .area-btn').forEach(b=>b.classList.remove('on'));});
+    for(let n=1;n<=ROUTE_COUNT;n++){document.getElementById('r'+n).value='';document.getElementById('c'+n).value='';document.getElementById('p'+n).textContent='';document.querySelectorAll(`#area${n} .chip`).forEach(b=>b.classList.remove('on'));}
+    document.getElementById('transfer').value='';
+    document.getElementById('factory-area').value='';
+    document.getElementById('factory-preview').textContent='';
+    document.querySelectorAll('#factory-chips .chip').forEach(b=>b.classList.remove('on'));
   },500);
 }
 
 // 月曆
-function renderCalendar() {
-  const records = getRecords();
-  const rocYear = calYear - 1911;
-  document.getElementById('cal-title').textContent = rocYear+'年'+(calMonth+1)+'月';
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  const today = new Date().toISOString().split('T')[0];
-  const grid = document.getElementById('cal-grid');
-  const dows = ['日','一','二','三','四','五','六'];
-  grid.innerHTML = dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  for(let i=0;i<firstDay;i++) grid.innerHTML += `<div class="cal-day empty-day"></div>`;
-  for(let d=1;d<=daysInMonth;d++) {
-    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const dayRecs = records.filter(r=>r.date===dateStr);
-    const tripCount = dayRecs.length > 0 ? dayRecs.reduce((s,r)=>{
-      return s + [r.r1,r.r2,r.r3,r.r4].filter(Boolean).length;
-    },0) : 0;
-    const isSun = new Date(calYear,calMonth,d).getDay()===0;
-    const isToday = dateStr===today;
-    const hasRec = dayRecs.length>0;
-    grid.innerHTML += `<div class="cal-day${isSun?' sunday':''}${isToday?' today':''}${hasRec?' has-record':''}" onclick="showDayDetail('${dateStr}')">
+function renderCalendar(){
+  const records=getRecords();
+  const rocYear=calYear-1911;
+  document.getElementById('cal-title').textContent=rocYear+'年'+(calMonth+1)+'月';
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date().toISOString().split('T')[0];
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=['日','一','二','三','四','五','六'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) grid.innerHTML+=`<div class="cal-day empty-day"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dayRecs=records.filter(r=>r.date===ds);
+    const tripCount=dayRecs.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
+    const isSun=new Date(calYear,calMonth,d).getDay()===0;
+    const hasRec=dayRecs.length>0;
+    grid.innerHTML+=`<div class="cal-day${isSun?' sunday':''}${ds===today?' today':''}${hasRec?' has-record':''}" onclick="showDayDetail('${ds}')">
       <div class="cal-day-num">${d}</div>
       ${hasRec?`<div class="cal-trip">${tripCount}趟</div>`:''}
     </div>`;
   }
 }
-function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
-function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
-function showDayDetail(dateStr) {
-  const records=getRecords().filter(r=>r.date===dateStr);
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function showDayDetail(ds){
+  const records=getRecords().filter(r=>r.date===ds);
   const detail=document.getElementById('cal-detail');
-  if(records.length===0){detail.innerHTML='';return;}
-  detail.innerHTML=records.map((r,i)=>`
-    <div class="record-card">
-      <div class="record-date">📅 ${r.date}</div>
-      ${r.r1?`<div class="record-row"><span class="lbl">趟次一</span><span class="val">${r.r1}</span></div>`:''}
-      ${r.r2?`<div class="record-row"><span class="lbl">趟次二</span><span class="val">${r.r2}</span></div>`:''}
-      ${r.r3?`<div class="record-row"><span class="lbl">趟次三</span><span class="val">${r.r3}</span></div>`:''}
-      ${r.r4?`<div class="record-row"><span class="lbl">趟次四</span><span class="val">${r.r4}</span></div>`:''}
-      ${r.transfer?`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`:''}
-    </div>`).join('');
+  if(!records.length){detail.innerHTML='';return;}
+  detail.innerHTML=records.map(r=>{
+    let rows='';
+    for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${r['r'+n]}</span></div>`;}
+    if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
+    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}</span></div>`;
+    return`<div class="record-card"><div class="record-date">📅 ${r.date}</div>${rows}</div>`;
+  }).join('');
 }
 
-// 匯出
-function toggleExportType() {
+// 10天週期
+function getTenRange(offset){
+  const now=new Date();
+  const end=new Date(now); end.setDate(now.getDate()-offset*10); end.setHours(23,59,59,999);
+  const start=new Date(end); start.setDate(end.getDate()-9); start.setHours(0,0,0,0);
+  return{start,end};
+}
+function fmtDate(d){ return d.toISOString().split('T')[0]; }
+function updateTenPreview(){
+  const{start,end}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+  document.getElementById('ten-label').textContent=fmtDate(start)+' ～ '+fmtDate(end);
+}
+function toggleExportType(){
   const t=document.getElementById('export-type').value;
-  document.getElementById('week-options').style.display=t==='week'?'block':'none';
+  document.getElementById('ten-options').style.display=t==='ten'?'block':'none';
   document.getElementById('month-options').style.display=t==='month'?'block':'none';
-}
-function getWeekRange(offset){
-  const now=new Date(),day=now.getDay();
-  const mon=new Date(now); mon.setDate(now.getDate()-(day===0?6:day-1)-offset*7); mon.setHours(0,0,0,0);
-  const sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
-  return{start:mon,end:sun};
-}
-function fmtDate(d){return d.toISOString().split('T')[0];}
-function updateWeekPreview(){
-  const{start,end}=getWeekRange(parseInt(document.getElementById('dl-week').value));
-  document.getElementById('week-label').textContent=fmtDate(start)+' ～ '+fmtDate(end);
 }
 function getExportRecords(){
   const type=document.getElementById('export-type').value;
   const all=getRecords();
-  if(type==='week'){
-    const{start,end}=getWeekRange(parseInt(document.getElementById('dl-week').value));
-    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end};
+  if(type==='ten'){
+    const{start,end}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end,type};
   } else {
     const mv=document.getElementById('dl-month').value;
-    const [y,m]=mv.split('-').map(Number);
-    const start=new Date(y,m-1,1), end=new Date(y,m,0,23,59,59);
-    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end};
+    const[y,m]=mv.split('-').map(Number);
+    const start=new Date(y,m-1,1),end=new Date(y,m,0,23,59,59);
+    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end,type};
   }
 }
 function previewExport(){
   const{records}=getExportRecords();
-  const previewDiv=document.getElementById('pdf-preview');
   document.getElementById('preview-rows').innerHTML=records.length===0
     ?'<div style="text-align:center;color:#d0a0b4;padding:16px;font-size:13px">此期間無紀錄</div>'
-    :records.map(r=>`<div class="pdf-row"><span class="day-label">${r.date.slice(5)}</span><span class="routes">${[r.r1,r.r2,r.r3,r.r4].filter(Boolean).join(' / ')}${r.transfer?' ｜轉倉'+r.transfer:''}</span></div>`).join('');
-  previewDiv.style.display='block';
+    :records.map(r=>{
+      let routes=[];for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])routes.push(r['r'+n]);}
+      return`<div class="pdf-row"><span class="day-label">${r.date.slice(5)}</span><span class="routes">${routes.join(' / ')}${r.transfer?' ｜轉倉'+r.transfer:''}${r.factory?' ｜廠提'+r.factory:''}</span></div>`;
+    }).join('');
+  document.getElementById('pdf-preview').style.display='block';
 }
 
-function calcAreaTotals(records) {
-  const totals = {雲林:0, 嘉義:0, 台南:0, 高雄:0};
-  records.forEach(r => {
-    [r.r1,r.r2,r.r3,r.r4].filter(Boolean).forEach(route => {
-      const {route:name} = parseRoute(route);
-      AREAS.forEach(a => { if(name.includes(a)) totals[a]++; });
-    });
+function calcTotals(records){
+  const area={雲林:0,嘉義:0,台南:0,高雄:0};
+  const factory={台南:0,台中:0};
+  records.forEach(r=>{
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        const{route}=parseRoute(r['r'+n]);
+        AREAS.forEach(a=>{if(route.includes(a))area[a]++;});
+      }
+    }
+    if(r.factory&&factory[r.factory]!==undefined) factory[r.factory]++;
   });
-  return totals;
+  return{area,factory};
 }
 
 function exportPDF(){
-  const{records,start,end}=getExportRecords();
+  const{records,start,end,type}=getExportRecords();
   const rocYear=start.getFullYear()-1911;
   const month=String(start.getMonth()+1).padStart(2,'0');
-  const type=document.getElementById('export-type').value;
-  const totals=calcAreaTotals(records);
-  const totalTrips=records.length;
+  const{area,factory}=calcTotals(records);
+  const totalTrips=records.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
   const totalTransfer=records.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
 
-  // 產生日期列表
+  // 日期列表
   let days=[];
-  if(type==='week'){
-    for(let i=0;i<7;i++){
-      const d=new Date(start); d.setDate(start.getDate()+i);
-      const ds=fmtDate(d), rec=records.find(r=>r.date===ds);
-      const wd=['日','一','二','三','四','五','六'][d.getDay()];
-      days.push({ds,rec,isSun:d.getDay()===0,wd});
+  if(type==='ten'){
+    for(let i=0;i<10;i++){
+      const d=new Date(start);d.setDate(start.getDate()+i);
+      const ds=fmtDate(d),rec=records.find(r=>r.date===ds);
+      days.push({ds,rec,isSun:d.getDay()===0,wd:['日','一','二','三','四','五','六'][d.getDay()]});
     }
   } else {
-    const daysInMonth=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();
-    for(let d=1;d<=daysInMonth;d++){
+    const dim=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();
+    for(let d=1;d<=dim;d++){
       const ds=start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
       const rec=records.find(r=>r.date===ds);
-      const dateObj=new Date(start.getFullYear(),start.getMonth(),d);
-      const wd=['日','一','二','三','四','五','六'][dateObj.getDay()];
-      days.push({ds,rec,isSun:dateObj.getDay()===0,wd});
+      const dobj=new Date(start.getFullYear(),start.getMonth(),d);
+      days.push({ds,rec,isSun:dobj.getDay()===0,wd:['日','一','二','三','四','五','六'][dobj.getDay()]});
     }
   }
 
-  const rows=days.map(({ds,rec,isSun,wd})=>`
-    <tr class="${isSun?'sunday':''}">
-      <td class="center">${ds.slice(5)}(${wd})</td>
-      <td>${rec?rec.r1||'':''}</td>
-      <td>${rec?rec.r2||'':''}</td>
-      <td>${rec?rec.r3||'':''}</td>
-      <td>${rec?rec.r4||'':''}</td>
-      <td class="center">${rec?rec.transfer||'':''}</td>
-      <td class="center">${rec?rec.plate||'':''}</td>
-    </tr>`).join('');
+  const rows=days.map(({ds,rec,isSun,wd})=>{
+    let routeCells='';
+    for(let n=1;n<=ROUTE_COUNT;n++) routeCells+=`<td>${rec?rec['r'+n]||'':''}</td>`;
+    return`<tr class="${isSun?'sunday':''}"><td class="center">${ds.slice(5)}(${wd})</td>${routeCells}<td class="center">${rec?rec.transfer||'':''}</td><td class="center">${rec?rec.plate||'':''}</td><td class="center">${rec?rec.factory||'':''}</td></tr>`;
+  }).join('');
 
-  const periodStr = type==='week'
-    ? fmtDate(start)+' ～ '+fmtDate(end)
-    : rocYear+'年'+month+'月';
+  const thCols=Array.from({length:ROUTE_COUNT},(_,i)=>`<th>配送趟次${i+1}<br>（路線區域）</th>`).join('');
+  const colW=Math.floor(62/ROUTE_COUNT);
+  const colGroup=`<col style="width:8%">${Array(ROUTE_COUNT).fill(`<col style="width:${colW}%">`).join('')}<col style="width:4%"><col style="width:5%"><col style="width:5%">`;
+  const periodStr=type==='ten'?fmtDate(start)+' ～ '+fmtDate(end):rocYear+'年'+month+'月';
 
   const printHTML=`<!DOCTYPE html>
-<html lang="zh-TW"><head><meta charset="UTF-8">
-<title>${rocYear}年${month}月出勤表</title>
+<html lang="zh-TW"><head><meta charset="UTF-8"><title>${rocYear}年${month}月出勤表</title>
 <style>
-  @page{size:A4 landscape;margin:10mm 12mm;}
+  @page{size:A4 landscape;margin:8mm 10mm;}
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:"PingFang TC","Microsoft JhengHei",-apple-system,sans-serif;font-size:9pt;}
+  body{font-family:"PingFang TC","Microsoft JhengHei",-apple-system,sans-serif;font-size:8.5pt;}
   .title-row{display:flex;align-items:center;margin-bottom:3mm;}
-  .spacer{flex:0 0 80px;}
-  .title-main{flex:1;text-align:center;font-size:14pt;font-weight:bold;}
-  .title-right{flex:0 0 120px;text-align:right;font-size:8pt;}
+  .spacer{flex:0 0 60px;}
+  .title-main{flex:1;text-align:center;font-size:13pt;font-weight:bold;}
+  .title-right{flex:0 0 130px;text-align:right;font-size:7.5pt;line-height:1.6;}
   table{width:100%;border-collapse:collapse;table-layout:fixed;}
-  th{background:#BDD7EE;font-weight:bold;font-size:8pt;text-align:center;border:1px solid #333;padding:2mm 1mm;height:11mm;vertical-align:middle;line-height:1.3;}
-  td{border:1px solid #333;height:13mm;vertical-align:middle;padding:1mm 2mm;font-size:8.5pt;}
+  th{background:#BDD7EE;font-weight:bold;font-size:7pt;text-align:center;border:1px solid #333;padding:1.5mm 1mm;height:10mm;vertical-align:middle;line-height:1.3;}
+  td{border:1px solid #333;height:12mm;vertical-align:middle;padding:1mm 1.5mm;font-size:7.5pt;}
   td.center{text-align:center;}
   tr.sunday td{background:#CCCCCC;}
   .footer{border:1px solid #333;border-top:none;}
-  .footer-row{padding:2mm 3mm;border-bottom:1px solid #333;font-size:8pt;min-height:8mm;display:flex;align-items:center;}
+  .footer-row{padding:1.5mm 3mm;border-bottom:1px solid #333;font-size:7.5pt;min-height:7mm;display:flex;align-items:center;}
   .footer-row:last-child{border-bottom:none;}
 </style></head><body>
 <div class="title-row">
   <div class="spacer"></div>
   <div class="title-main">${rocYear}年${month}月出勤表（寶雅）</div>
-  <div class="title-right">運務士　${currentUser}　：<br>${periodStr}</div>
+  <div class="title-right">運務士　${currentUser}　：<br>期間：${periodStr}</div>
 </div>
 <table>
-  <colgroup><col style="width:9%"><col style="width:20%"><col style="width:20%"><col style="width:20%"><col style="width:20%"><col style="width:5%"><col style="width:6%"></colgroup>
-  <thead><tr>
-    <th>日期</th><th>配送趟次一<br>（路線區域）</th><th>配送趟次二<br>（路線區域）</th>
-    <th>配送趟次三<br>（路線區域）</th><th>配送趟次四<br>（路線區域）</th><th>轉倉</th><th>車牌號碼</th>
-  </tr></thead>
+  <colgroup>${colGroup}</colgroup>
+  <thead><tr><th>日期</th>${thCols}<th>轉倉</th><th>車牌號碼</th><th>廠提</th></tr></thead>
   <tbody>${rows}</tbody>
 </table>
 <div class="footer">
-  <div class="footer-row">總趟數：${totalTrips} 趟　**　雲林路線：${totals['雲林']} 趟　**　嘉義路線：${totals['嘉義']} 趟　**　台南路線：${totals['台南']} 趟　**　高雄路線：${totals['高雄']} 趟　廠提: 台南:　　台中:</div>
+  <div class="footer-row">總趟數：${totalTrips} 趟　**　雲林路線：${area['雲林']} 趟　**　嘉義路線：${area['嘉義']} 趟　**　台南路線：${area['台南']} 趟　**　高雄路線：${area['高雄']} 趟　廠提：台南 ${factory['台南']}　台中 ${factory['台中']}</div>
   <div class="footer-row">轉倉：${totalTransfer}</div>
 </div>
 </body></html>`;
 
   const w=window.open('','_blank');
   if(w){w.document.write(printHTML);w.document.close();setTimeout(()=>{w.focus();w.print();},600);}
-  else{toast('❌ 請允許彈出視窗');}
+  else toast('❌ 請允許彈出視窗');
 }
 
 // 紀錄
 function loadMyRecords(){
   const all=getRecords().reverse();
-  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
-  const monthStart=new Date(y,m,1), monthEnd=new Date(y,m+1,0,23,59,59);
-  const thisMonth=all.filter(r=>{const d=new Date(r.date);return d>=monthStart&&d<=monthEnd;});
-  const totalTransfer=thisMonth.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
-  const rocYear=y-1911;
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const mStart=new Date(y,m,1),mEnd=new Date(y,m+1,0,23,59,59);
+  const thisMon=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
+  const mTransfer=thisMon.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
+  const mTrips=thisMon.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}return s+c;},0);
   document.getElementById('stats-area').innerHTML=`
-    <div class="stats-area" style="margin-bottom:8px;font-size:12px;color:var(--sub);font-weight:600;padding:0 2px">${rocYear}年${m+1}月統計</div>
+    <div style="margin-bottom:8px;font-size:12px;color:var(--sub);font-weight:600;padding:0 2px">${y-1911}年${m+1}月統計</div>
     <div class="stats-row">
       <div class="stat-box"><div class="stat-num" style="color:var(--pink)">${all.length}</div><div class="stat-lbl">累計出勤天</div></div>
-      <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${thisMonth.length}</div><div class="stat-lbl">本月趟數</div></div>
-      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${totalTransfer}</div><div class="stat-lbl">本月轉倉</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${mTrips}</div><div class="stat-lbl">本月趟數</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${mTransfer}</div><div class="stat-lbl">本月轉倉</div></div>
     </div>`;
   const list=document.getElementById('records-list');
-  if(all.length===0){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div>';return;}
-  list.innerHTML=all.map((r,idx)=>`
-    <div class="record-card">
-      <div class="record-date">📅 ${r.date}</div>
-      ${r.r1?`<div class="record-row"><span class="lbl">趟次一</span><span class="val">${r.r1}</span></div>`:''}
-      ${r.r2?`<div class="record-row"><span class="lbl">趟次二</span><span class="val">${r.r2}</span></div>`:''}
-      ${r.r3?`<div class="record-row"><span class="lbl">趟次三</span><span class="val">${r.r3}</span></div>`:''}
-      ${r.r4?`<div class="record-row"><span class="lbl">趟次四</span><span class="val">${r.r4}</span></div>`:''}
-      ${r.transfer?`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`:''}
-      ${r.plate?`<div class="record-row"><span class="lbl">車牌</span><span class="val">${r.plate}</span></div>`:''}
+  if(!all.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div>';return;}
+  list.innerHTML=all.map((r,i)=>{
+    let rows='';
+    for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${r['r'+n]}</span></div>`;}
+    if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
+    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}</span></div>`;
+    if(r.plate)rows+=`<div class="record-row"><span class="lbl">車牌</span><span class="val">${r.plate}</span></div>`;
+    return`<div class="record-card">
+      <div class="record-date">📅 ${r.date}</div>${rows}
       <div class="record-actions">
-        <button class="btn btn-edit" onclick="openEdit(${all.length-1-idx})">✏️ 修改</button>
-        <button class="btn btn-danger" onclick="deleteRecord(${all.length-1-idx})">🗑️ 刪除</button>
-      </div>
-    </div>`).join('');
+        <button class="btn btn-edit" onclick="openEdit(${all.length-1-i})">✏️ 修改</button>
+        <button class="btn btn-danger" onclick="deleteRecord(${all.length-1-i})">🗑️ 刪除</button>
+      </div></div>`;
+  }).join('');
 }
 
 function deleteRecord(idx){
-  if(!confirm('確定要刪除這筆紀錄嗎？')) return;
+  if(!confirm('確定要刪除這筆紀錄嗎？'))return;
   const records=getRecords(); records.splice(idx,1); saveRecords(records);
   toast('🗑️ 已刪除'); loadMyRecords();
 }
-
 function openEdit(idx){
   const r=getRecords()[idx];
   document.getElementById('edit-idx').value=idx;
   document.getElementById('edit-date').value=r.date;
   document.getElementById('edit-plate').value=r.plate||'';
-  // 解析路線
-  ['r1','r2','r3','r4'].forEach((key,i)=>{
-    const n=i+1;
-    if(r[key]){
-      const{route,count}=parseRoute(r[key]);
-      document.getElementById('edit-'+key).value=route;
-      document.getElementById('edit-c'+n).value=count||'';
-    } else {
-      document.getElementById('edit-'+key).value='';
-      document.getElementById('edit-c'+n).value='';
-    }
-  });
   document.getElementById('edit-transfer').value=r.transfer||'';
+  for(let n=1;n<=ROUTE_COUNT;n++){
+    const{route,count}=parseRoute(r['r'+n]||'');
+    document.getElementById('edit-r'+n).value=route;
+    document.getElementById('edit-c'+n).value=count||'';
+  }
+  const fac=r.factory||'';
+  document.getElementById('edit-factory-area').value=fac;
+  document.querySelectorAll('#edit-factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===fac));
   document.getElementById('edit-modal').classList.add('show');
 }
 function closeModal(){ document.getElementById('edit-modal').classList.remove('show'); }
 function saveEdit(){
   const idx=parseInt(document.getElementById('edit-idx').value);
   const records=getRecords();
-  records[idx]={
-    ...records[idx],
-    date:document.getElementById('edit-date').value,
-    plate:document.getElementById('edit-plate').value.trim(),
-    r1:fmt(document.getElementById('edit-r1').value.trim(),document.getElementById('edit-c1').value),
-    r2:fmt(document.getElementById('edit-r2').value.trim(),document.getElementById('edit-c2').value),
-    r3:fmt(document.getElementById('edit-r3').value.trim(),document.getElementById('edit-c3').value),
-    r4:fmt(document.getElementById('edit-r4').value.trim(),document.getElementById('edit-c4').value),
-    transfer:document.getElementById('edit-transfer').value,
-  };
-  saveRecords(records); closeModal(); toast('✅ 修改已儲存'); loadMyRecords();
+  const upd={...records[idx],date:document.getElementById('edit-date').value,plate:document.getElementById('edit-plate').value.trim(),transfer:document.getElementById('edit-transfer').value,factory:document.getElementById('edit-factory-area').value};
+  for(let n=1;n<=ROUTE_COUNT;n++) upd['r'+n]=fmt(document.getElementById('edit-r'+n).value.trim(),document.getElementById('edit-c'+n).value);
+  records[idx]=upd; saveRecords(records); closeModal(); toast('✅ 修改已儲存'); loadMyRecords();
 }
 </script>
 </body>
