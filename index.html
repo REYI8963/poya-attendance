@@ -694,27 +694,36 @@ function showDayDetail(ds){
 
 // 10天週期
 function getTenRange(offset){
-  // 固定切割：1-10, 11-20, 21-月底
+  // 用本地時間避免時差問題
   const now=new Date();
-  let y=now.getFullYear(), m=now.getMonth();
-  const day=now.getDate();
-  // 0=本期, 往前推
-  let curPeriod = day<=10?0 : day<=20?1 : 2; // 0=1-10期, 1=11-20期, 2=21-月底期
-  let totalPeriod = curPeriod - offset; // 往前推
+  let y=now.getFullYear(), m=now.getMonth(), day=now.getDate();
+  // 判斷當前期數
+  let curPeriod = day<=10?0 : day<=20?1 : 2;
+  let totalPeriod = curPeriod - offset;
   // 換算月份
   while(totalPeriod < 0){ totalPeriod+=3; m--; if(m<0){m=11;y--;} }
   while(totalPeriod > 2){ totalPeriod-=3; m++; if(m>11){m=0;y++;} }
   const dim=new Date(y,m+1,0).getDate();
-  let start,end;
-  if(totalPeriod===0){start=new Date(y,m,1);end=new Date(y,m,10,23,59,59);}
-  else if(totalPeriod===1){start=new Date(y,m,11);end=new Date(y,m,20,23,59,59);}
-  else{start=new Date(y,m,21);end=new Date(y,m,dim,23,59,59);}
-  return{start,end,periodLabel:(y-1911)+'年'+(m+1)+'月 '+(totalPeriod===0?'1-10日':totalPeriod===1?'11-20日':'21-'+dim+'日')};
+  let s1,s2,e1,e2,label;
+  if(totalPeriod===0){
+    s1=y; s2=m+1; e1=1; e2=10; label='1-10日';
+  } else if(totalPeriod===1){
+    s1=y; s2=m+1; e1=11; e2=20; label='11-20日';
+  } else {
+    s1=y; s2=m+1; e1=21; e2=dim; label='21-'+dim+'日';
+  }
+  // 用本地時間建立日期字串，避免時區偏移
+  const pad=n=>String(n).padStart(2,'0');
+  const startStr=s1+'-'+pad(s2)+'-'+pad(e1);
+  const endStr=s1+'-'+pad(s2)+'-'+pad(e2);
+  const start=new Date(s1,s2-1,e1,0,0,0);
+  const end=new Date(s1,s2-1,e2,23,59,59);
+  return{start,end,startStr,endStr,periodLabel:(y-1911)+'年'+s2+'月 '+label};
 }
 function fmtDate(d){ return d.toISOString().split('T')[0]; }
 function updateTenPreview(){
-  const{start,end,periodLabel}=getTenRange(parseInt(document.getElementById('dl-ten').value));
-  document.getElementById('ten-label').textContent=periodLabel+' ('+fmtDate(start)+' ～ '+fmtDate(end)+')';
+  const{startStr,endStr,periodLabel}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+  document.getElementById('ten-label').textContent=periodLabel+' ('+startStr+' ～ '+endStr+')';
 }
 function toggleExportType(){
   const t=document.getElementById('export-type').value;
@@ -725,8 +734,8 @@ function getExportRecords(){
   const type=document.getElementById('export-type').value;
   const all=getRecords();
   if(type==='ten'){
-    const{start,end}=getTenRange(parseInt(document.getElementById('dl-ten').value));
-    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end,type};
+    const{start,end,startStr,endStr,periodLabel}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+    return{records:all.filter(r=>r.date>=startStr&&r.date<=endStr).sort((a,b)=>a.date.localeCompare(b.date)),start,end,startStr,endStr,type};
   } else {
     const mv=document.getElementById('dl-month').value;
     const[y,m]=mv.split('-').map(Number);
@@ -735,7 +744,8 @@ function getExportRecords(){
   }
 }
 function previewExport(){
-  const{records}=getExportRecords();
+  const res=getExportRecords();
+  const{records}=res;
   document.getElementById('preview-rows').innerHTML=records.length===0
     ?'<div style="text-align:center;color:#d0a0b4;padding:16px;font-size:13px">此期間無紀錄</div>'
     :records.map(r=>{
@@ -773,10 +783,16 @@ function exportPDF(){
   // 日期列表
   let days=[];
   if(type==='ten'){
-    for(let i=0;i<10;i++){
-      const d=new Date(start);d.setDate(start.getDate()+i);
-      const ds=fmtDate(d),rec=records.find(r=>r.date===ds);
-      days.push({ds,rec,isSun:d.getDay()===0,wd:['日','一','二','三','四','五','六'][d.getDay()]});
+    // 用字串切割避免時區問題
+    const[sy,sm,sd]=startStr.split('-').map(Number);
+    const[ey,em,ed]=endStr.split('-').map(Number);
+    let cur=new Date(sy,sm-1,sd);
+    const endD=new Date(ey,em-1,ed);
+    while(cur<=endD){
+      const ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+      const rec=records.find(r=>r.date===ds);
+      days.push({ds,rec,isSun:cur.getDay()===0,wd:['日','一','二','三','四','五','六'][cur.getDay()]});
+      cur.setDate(cur.getDate()+1);
     }
   } else {
     const dim=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();
