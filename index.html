@@ -388,8 +388,7 @@ function setTon(prefix, n, ton){
   updatePreviewTag(prefix,n);
 }
 function syncChips(prefix, n){
-  const val = document.getElementById(prefix+'r'+n).value.trim();
-  document.querySelectorAll(`#${prefix}area${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===val));
+  // 純更新預覽，不動區域按鈕高亮（兩者獨立）
   updatePreviewTag(prefix,n);
 }
 function updatePreviewTag(prefix,n){
@@ -397,12 +396,31 @@ function updatePreviewTag(prefix,n){
   const c=document.getElementById(prefix+'c'+n).value;
   const tEl=document.getElementById(prefix+'t'+n);
   const t=tEl?tEl.value:'';
+  // 取得已選的區域
+  const areaOn=[...document.querySelectorAll(`#${prefix}area${n} .chip.on`)].map(b=>b.textContent).join('');
   const el=document.getElementById(prefix+'p'+n);
-  if(el) el.textContent = r?'預覽：'+r+(c?'（'+c+'間）':'')+(t?' ['+t+']':''):'';
+  if(el){
+    let preview='';
+    if(r) preview+='路線：'+r;
+    if(areaOn) preview+=(preview?' ｜ ':'')+'區域：'+areaOn;
+    if(c) preview+=(preview?' ｜ ':'')+'間數：'+c+'間';
+    if(t) preview+=(preview?' ｜ ':'')+'噸數：'+t;
+    el.textContent=preview?'預覽：'+preview:'';
+  }
 }
 function setAreaChip(prefix,n,area){
-  document.getElementById(prefix+'r'+n).value=area;
-  document.querySelectorAll(`#${prefix}area${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===area));
+  // 區域快選：只標記選取狀態，不改動文字欄位
+  // 如果目前已選同一個區域則取消，否則選取
+  const el=document.getElementById(prefix+'r'+n);
+  const chips=document.querySelectorAll(`#${prefix}area${n} .chip`);
+  const isAlreadyOn=[...chips].find(b=>b.textContent===area&&b.classList.contains('on'));
+  chips.forEach(b=>b.classList.remove('on'));
+  if(!isAlreadyOn){
+    // 選取這個區域：把區域名稱寫到輸入框末端（如果框是空的）
+    // 如果框是空的就直接填入，否則保留原本內容
+    if(!el.value.trim()) el.value=area;
+    document.querySelector(`#${prefix}area${n} .chip[onclick*="${area}"]`).classList.add('on');
+  }
   updatePreviewTag(prefix,n);
 }
 
@@ -484,8 +502,13 @@ function submitForm(){
   if(!r1){toast('⚠️ 請填寫趟次一路線');return;}
   const data={name:currentUser,date,plate:document.getElementById('plate').value.trim(),transfer:document.getElementById('transfer').value,factory:document.getElementById('factory-area').value,factoryCount:document.getElementById('factory-count').value,factoryTon:document.getElementById('factory-ton').value,time:new Date().toLocaleString('zh-TW')};
   for(let n=1;n<=ROUTE_COUNT;n++){
-    data['r'+n]=fmt(document.getElementById('r'+n).value.trim(),document.getElementById('c'+n).value);
-    data['t'+n]=document.getElementById('t'+n).value;
+    const route=document.getElementById('r'+n).value.trim();
+    const count=document.getElementById('c'+n).value;
+    const areaOn=[...document.querySelectorAll(`#area${n} .chip.on`)].map(b=>b.textContent).join('');
+    data['r'+n]=route; // 路線名稱（純文字）
+    data['a'+n]=areaOn; // 區域分類
+    data['c'+n]=count;  // 間數
+    data['t'+n]=document.getElementById('t'+n).value; // 噸數
   }
   const records=getRecords(); records.push(data); saveRecords(records);
   const btn=document.getElementById('submit-btn');
@@ -494,6 +517,7 @@ function submitForm(){
     btn.textContent='✅ 送出紀錄'; btn.disabled=false;
     const b=document.getElementById('success-banner'); b.style.display='flex'; setTimeout(()=>b.style.display='none',3000);
     for(let n=1;n<=ROUTE_COUNT;n++){document.getElementById('r'+n).value='';document.getElementById('c'+n).value='';document.getElementById('p'+n).textContent='';document.getElementById('t'+n).value='';document.querySelectorAll(`#area${n} .chip`).forEach(b=>b.classList.remove('on'));document.querySelectorAll(`#ton${n} .chip`).forEach(b=>b.classList.remove('on'));}
+    // 清 preview 標籤
     document.getElementById('transfer').value='';
     document.getElementById('factory-area').value='';
     document.getElementById('factory-count').value='';
@@ -537,7 +561,15 @@ function showDayDetail(ds){
   if(!records.length){detail.innerHTML='';return;}
   detail.innerHTML=records.map(r=>{
     let rows='';
-    for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${r['r'+n]}${r['t'+n]?' ['+r['t'+n]+']':''}</span></div>`;}
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        let val=r['r'+n];
+        if(r['a'+n]) val+='（'+r['a'+n]+'）';
+        if(r['c'+n]) val+=' '+r['c'+n]+'間';
+        if(r['t'+n]) val+=' ['+r['t'+n]+']';
+        rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${val}</span></div>`;
+      }
+    }
     if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
     if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}${r.factoryTon?' ['+r.factoryTon+']':''}</span></div>`;
     return`<div class="record-card"><div class="record-date">📅 ${r.date}</div>${rows}</div>`;
@@ -603,8 +635,8 @@ function calcTotals(records){
   records.forEach(r=>{
     for(let n=1;n<=ROUTE_COUNT;n++){
       if(r['r'+n]){
-        const{route}=parseRoute(r['r'+n]);
-        AREAS.forEach(a=>{if(route.includes(a))area[a]++;});
+        const a=r['a'+n]||'';
+        AREAS.forEach(aName=>{if(a===aName)area[aName]++;});
       }
     }
     if(r.factory&&factory[r.factory]!==undefined) factory[r.factory]++;
@@ -641,9 +673,14 @@ function exportPDF(){
   const rows=days.map(({ds,rec,isSun,wd})=>{
     let routeCells='';
     for(let n=1;n<=ROUTE_COUNT;n++){
-      const route=rec?rec['r'+n]||'':'';
-      const ton=rec?rec['t'+n]||'':'';
-      routeCells+=`<td>${route}${ton?' <span style="font-size:7pt;color:#555">['+ton+']</span>':''}</td>`;
+      let cell='';
+      if(rec&&rec['r'+n]){
+        cell=rec['r'+n];
+        if(rec['a'+n]) cell+='（'+rec['a'+n]+'）';
+        if(rec['c'+n]) cell+=' '+rec['c'+n]+'間';
+        if(rec['t'+n]) cell+='<br><span style="font-size:6.5pt;color:#555">['+rec['t'+n]+']</span>';
+      }
+      routeCells+=`<td>${cell}</td>`;
     }
     const facVal=rec?(rec.factory||'')+(rec.factoryCount?'（'+rec.factoryCount+'間）':'')+(rec.factoryTon?' ['+rec.factoryTon+']':''):'';
     return`<tr class="${isSun?'sunday':''}"><td class="center">${ds.slice(5)}(${wd})</td>${routeCells}<td class="center">${rec?rec.transfer||'':''}</td><td class="center">${rec?rec.plate||'':''}</td><td class="center">${facVal}</td></tr>`;
@@ -717,7 +754,15 @@ function loadMyRecords(){
   list.innerHTML=thisMon.map((r,i)=>{
     const realIdx=all.findIndex(a=>a.date===r.date&&a.time===r.time);
     let rows='';
-    for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${r['r'+n]}${r['t'+n]?' ['+r['t'+n]+']':''}</span></div>`;}
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        let val=r['r'+n];
+        if(r['a'+n]) val+='（'+r['a'+n]+'）';
+        if(r['c'+n]) val+=' '+r['c'+n]+'間';
+        if(r['t'+n]) val+=' ['+r['t'+n]+']';
+        rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${val}</span></div>`;
+      }
+    }
     if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
     if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}${r.factoryTon?' ['+r.factoryTon+']':''}</span></div>`;
     if(r.plate)rows+=`<div class="record-row"><span class="lbl">車牌</span><span class="val">${r.plate}</span></div>`;
@@ -742,9 +787,10 @@ function openEdit(idx){
   document.getElementById('edit-plate').value=r.plate||'';
   document.getElementById('edit-transfer').value=r.transfer||'';
   for(let n=1;n<=ROUTE_COUNT;n++){
-    const{route,count}=parseRoute(r['r'+n]||'');
-    document.getElementById('edit-r'+n).value=route;
-    document.getElementById('edit-c'+n).value=count||'';
+    document.getElementById('edit-r'+n).value=r['r'+n]||'';
+    document.getElementById('edit-c'+n).value=r['c'+n]||'';
+    const area=r['a'+n]||'';
+    document.querySelectorAll(`#edit-area${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===area));
     const ton=r['t'+n]||'';
     document.getElementById('edit-t'+n).value=ton;
     document.querySelectorAll(`#edit-ton${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===ton));
@@ -765,7 +811,12 @@ function saveEdit(){
   const records=getRecords();
   const upd={...records[idx],date:document.getElementById('edit-date').value,plate:document.getElementById('edit-plate').value.trim(),transfer:document.getElementById('edit-transfer').value,factory:document.getElementById('edit-factory-area').value,factoryCount:document.getElementById('edit-factory-count').value,factoryTon:document.getElementById('edit-factory-ton').value};
   for(let n=1;n<=ROUTE_COUNT;n++){
-    upd['r'+n]=fmt(document.getElementById('edit-r'+n).value.trim(),document.getElementById('edit-c'+n).value);
+    const route=document.getElementById('edit-r'+n).value.trim();
+    const count=document.getElementById('edit-c'+n).value;
+    const areaOn=[...document.querySelectorAll(`#edit-area${n} .chip.on`)].map(b=>b.textContent).join('');
+    upd['r'+n]=route;
+    upd['a'+n]=areaOn;
+    upd['c'+n]=count;
     upd['t'+n]=document.getElementById('edit-t'+n).value;
   }
   records[idx]=upd; saveRecords(records); closeModal(); toast('✅ 修改已儲存'); loadMyRecords();
