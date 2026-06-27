@@ -148,7 +148,7 @@
   @media print {
     body > *:not(#print-overlay) { display:none !important; }
     #print-overlay { display:block !important; padding:0; }
-    #print-overlay .print-toolbar { display:none !important; }
+    #print-toolbar { display:none !important; }
     @page { size: A4 landscape; margin: 10mm 12mm; }
   }
 </style>
@@ -369,11 +369,11 @@
 
 <!-- 列印預覽層 -->
 <div id="print-overlay">
-  <div class="print-toolbar">
+  <div class="print-toolbar" id="print-toolbar">
     <button class="btn-print-go" onclick="doPrint()">🖨️ 列印 / 儲存PDF</button>
     <button class="btn-print-close" onclick="closePrintOverlay()">✕ 關閉</button>
   </div>
-  <div id="print-content"></div>
+  <div id="print-content-inner"></div>
 </div>
 
 <script>
@@ -891,10 +891,11 @@ function exportPDF(){
 </div>
 </body></html>`;
 
-  // 解析 HTML 只取 body 內容放進預覽層
-  const parser=new DOMParser();
-  const doc=parser.parseFromString(printHTML,'text/html');
-  document.getElementById('print-content').innerHTML=doc.body.innerHTML;
+  // 建立隱藏的列印區域，觸發列印
+  let printDiv = document.getElementById('print-area');
+  if(!printDiv){ printDiv=document.createElement('div'); printDiv.id='print-area'; document.body.appendChild(printDiv); }
+  printDiv.innerHTML = printHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || '';
+  document.getElementById('print-overlay').innerHTML = printDiv.innerHTML;
   document.getElementById('print-overlay').classList.add('show');
   document.body.style.overflow='hidden';
 }
@@ -905,10 +906,7 @@ function closePrintOverlay(){
 }
 
 function doPrint(){
-  // 隱藏 toolbar，列印完再顯示
-  document.querySelector('.print-toolbar').style.display='none';
   window.print();
-  document.querySelector('.print-toolbar').style.display='flex';
 }
 
 // 紀錄
