@@ -346,7 +346,7 @@
 
 <div class="toast" id="toast"></div>
 
-<iframe id="print-frame" style="display:none"></iframe>
+
 
 <script>
 const USERS = {'李憶擇':'1116','梁世昌':'5888','陳毅帆':'0000','劉哲維':'5566','陳勇德':'1122','陳冠宇':'5678'};
@@ -743,7 +743,10 @@ function getExportRecords(){
     const mv=document.getElementById('dl-month').value;
     const[y,m]=mv.split('-').map(Number);
     const start=new Date(y,m-1,1),end=new Date(y,m,0,23,59,59);
-    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end,type};
+    const pad=n=>String(n).padStart(2,'0');
+    const startStr=y+'-'+pad(m)+'-01';
+    const endStr=y+'-'+pad(m)+'-'+pad(new Date(y,m,0).getDate());
+    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end,startStr,endStr,type};
   }
 }
 function previewExport(){
@@ -776,7 +779,7 @@ function calcTotals(records){
 }
 
 function exportPDF(){
-  const{records,start,end,type}=getExportRecords();
+  const{records,start,end,startStr,endStr,type}=getExportRecords();
   const rocYear=start.getFullYear()-1911;
   const month=String(start.getMonth()+1).padStart(2,'0');
   const totals=calcTotals(records);
@@ -863,14 +866,13 @@ function exportPDF(){
 </div>
 </body></html>`;
 
-  // 原本能正常運作的方式
   const w = window.open('', '_blank');
   if(w){
     w.document.write(printHTML);
     w.document.close();
     setTimeout(() => { w.focus(); w.print(); }, 600);
   } else {
-    toast('❌ 請允許 Chrome 彈出視窗');
+    toast('❌ 請允許彈出視窗');
   }
 }
 
