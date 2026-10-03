@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-TW" style="background:#fdf4f8">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POYA 寶雅出勤填報</title>
+<style>
+  :root {
+    color-scheme: light;
+    --pink:#e8317a; --pink-d:#c0185f; --pink-l:#fde8f1; --pink-ll:#fff5f9;
+    --orange:#f47920; --green:#3aaa35; --yellow:#ffe066;
+    --bg:#fdf4f8; --border:#f0d0df; --text:#2a1520; --sub:#9a6878;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,'Helvetica Neue',sans-serif; background:var(--bg) !important; min-height:100vh; color:var(--text); color-scheme:light only; }
+
+  #login-screen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 24px; background:linear-gradient(160deg,var(--pink-d) 0%,var(--pink) 55%,#f06090 100%); }
+  .login-poya { font-size:42px; font-weight:900; letter-spacing:3px; color:white; text-align:center; }
+  .login-tagline { color:rgba(255,255,255,0.75); font-size:12px; letter-spacing:4px; margin-top:6px; text-align:center; margin-bottom:36px; }
+  .login-card { background:white; border-radius:24px; padding:30px 24px; width:100%; max-width:340px; box-shadow:0 12px 48px rgba(200,24,95,0.25); }
+  .login-card h2 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:4px; }
+  .login-card p { font-size:12px; color:var(--sub); margin-bottom:20px; }
+  .login-card select, .login-card input[type="password"] { width:100%; padding:13px 14px; border:2px solid var(--border); border-radius:12px; font-size:16px; color:var(--text); background:var(--pink-ll); -webkit-appearance:none; margin-bottom:12px; }
+  .login-card select:focus, .login-card input:focus { outline:none; border-color:var(--pink); background:white; }
+  .btn-login { width:100%; padding:15px; border:none; border-radius:14px; font-size:16px; font-weight:700; cursor:pointer; color:white; background:linear-gradient(135deg,var(--pink),var(--pink-d)); }
+  .login-error { color:var(--pink-d); font-size:13px; text-align:center; margin-top:10px; display:none; font-weight:600; }
+  .login-dots { display:flex; gap:8px; justify-content:center; margin-top:28px; }
+  .dot { width:9px; height:9px; border-radius:50%; }
+
+  #app-screen { display:none; }
+  .color-stripe { height:4px; display:flex; }
+  .color-stripe div { flex:1; }
+  header { background:var(--pink); color:white; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(200,24,95,0.3); }
+  .header-brand { font-size:19px; font-weight:900; }
+  .header-sub { font-size:10px; opacity:0.75; display:block; }
+  .header-right { display:flex; align-items:center; gap:8px; }
+  .user-badge { background:white; color:var(--pink); font-size:12px; font-weight:700; padding:5px 13px; border-radius:20px; }
+  .btn-logout { background:rgba(255,255,255,0.2); border:none; color:rgba(255,255,255,0.85); font-size:11px; padding:5px 10px; border-radius:8px; cursor:pointer; }
+
+  .tabs { display:flex; background:white; border-bottom:2px solid var(--border); position:sticky; top:53px; z-index:99; overflow-x:auto; }
+  .tab { flex:0 0 auto; padding:11px 10px; text-align:center; font-size:11px; color:var(--sub); cursor:pointer; border-bottom:3px solid transparent; font-weight:600; margin-bottom:-2px; white-space:nowrap; }
+  .tab.on { color:var(--pink); border-color:var(--pink); }
+
+  .page { display:none; padding:14px; max-width:500px; margin:0 auto; }
+  .page.on { display:block; }
+
+  .card { background:white; border-radius:16px; padding:18px; margin-bottom:12px; box-shadow:0 2px 10px rgba(200,24,95,0.07); border:1px solid var(--border); }
+  .card-title { font-size:11px; font-weight:700; color:var(--pink); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--pink-l); display:flex; align-items:center; gap:6px; }
+  .card-title::before { content:''; display:block; width:3px; height:14px; background:var(--pink); border-radius:2px; }
+
+  .fg { margin-bottom:12px; }
+  .fg:last-child { margin-bottom:0; }
+  label { display:block; font-size:12px; color:var(--sub); margin-bottom:5px; font-weight:600; }
+  select, input[type="text"], input[type="date"], input[type="number"], input[type="month"] { width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; color:var(--text); background:var(--pink-ll); -webkit-appearance:none; }
+  select:focus, input:focus { outline:none; border-color:var(--pink); background:white; }
+
+  .route-row { display:flex; gap:8px; align-items:flex-start; }
+  .route-input { flex:1; }
+  .route-input input { width:100%; }
+  .count-wrap { display:flex; align-items:center; gap:4px; flex-shrink:0; padding-top:0; }
+  .count-wrap input[type="number"] { width:58px; padding:11px 8px; text-align:center; }
+  .count-wrap span { font-size:13px; color:var(--sub); }
+
+  .area-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+  .chip { padding:4px 10px; border:1.5px solid var(--border); border-radius:16px; font-size:11px; font-weight:600; background:white; color:var(--sub); cursor:pointer; white-space:nowrap; }
+  .chip.on { border-color:var(--pink); background:var(--pink-ll); color:var(--pink); }
+  .preview-tag { margin-top:5px; font-size:12px; color:var(--pink); min-height:16px; font-weight:500; }
+
+  .btn { width:100%; padding:15px; border:none; border-radius:13px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:8px; }
+  .btn:last-child { margin-bottom:0; }
+  .btn-primary { background:linear-gradient(135deg,var(--pink),var(--pink-d)); color:white; box-shadow:0 4px 14px rgba(200,24,95,0.28); }
+  .btn-primary:active { opacity:0.85; }
+  .btn-primary:disabled { background:#f0b0c8; box-shadow:none; }
+  .btn-dl { background:linear-gradient(135deg,var(--orange),#d45f00); color:white; }
+  .btn-outline { background:white; color:var(--pink); border:2px solid var(--pink); margin-bottom:8px; box-sizing:border-box; }
+  .btn-danger { background:white; color:#e74c3c; border:2px solid #e74c3c; font-size:13px; padding:10px; }
+  .btn-edit { background:white; color:var(--green); border:2px solid var(--green); font-size:13px; padding:10px; }
+
+  .week-label { font-size:12px; color:var(--sub); margin-top:6px; text-align:center; }
+  .pdf-preview { background:var(--pink-ll); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .pdf-preview-title { font-size:13px; font-weight:700; color:var(--pink-d); margin-bottom:10px; }
+  .pdf-row { display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid var(--border); }
+  .pdf-row:last-child { border:none; }
+  .pdf-row .day-label { font-weight:700; color:var(--text); min-width:55px; }
+  .pdf-row .routes { color:#666; font-size:11px; text-align:right; max-width:70%; }
+
+  .success-banner { background:#fff0f6; border:1px solid #f8b8d4; border-radius:12px; padding:12px 16px; font-size:13px; color:var(--pink-d); margin-bottom:12px; display:none; align-items:center; gap:8px; }
+  .toast { display:none; position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:var(--text); color:white; padding:11px 22px; border-radius:22px; font-size:13px; z-index:999; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,0.2); }
+
+  .record-card { background:white; border-radius:13px; padding:14px; margin-bottom:10px; border:1px solid var(--border); border-left:4px solid var(--pink); }
+  .record-date { font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .record-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid var(--pink-l); }
+  .record-row:last-child { border:none; }
+  .record-row .lbl { color:var(--sub); font-size:12px; }
+  .record-row .val { color:var(--text); font-weight:500; max-width:65%; text-align:right; }
+  .record-actions { display:flex; gap:8px; margin-top:10px; }
+  .record-actions button { flex:1; box-sizing:border-box; }
+
+  .empty { text-align:center; color:#d0a0b4; padding:40px 20px; font-size:14px; }
+  .empty-icon { font-size:40px; margin-bottom:10px; }
+
+  .stats-row { display:flex; gap:8px; margin-bottom:12px; }
+  .stat-box { flex:1; background:white; border-radius:14px; padding:14px 10px; text-align:center; border:1px solid var(--border); }
+  .stat-num { font-size:24px; font-weight:900; }
+  .stat-lbl { font-size:10px; color:var(--sub); margin-top:3px; font-weight:600; }
+
+  /* 月曆 */
+  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-title { font-size:15px; font-weight:700; color:var(--text); }
+  .cal-nav { background:none; border:1.5px solid var(--border); border-radius:8px; padding:6px 12px; font-size:14px; color:var(--pink); cursor:pointer; font-weight:700; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal-dow { text-align:center; font-size:10px; font-weight:700; color:var(--sub); padding:4px 0; }
+  .cal-dow:first-child,.cal-dow:last-child { color:#e74c3c; }
+  .cal-day { background:white; border:1px solid var(--border); border-radius:8px; padding:4px 3px; min-height:50px; cursor:pointer; }
+  .cal-day.empty-day { background:transparent; border:none; }
+  .cal-day.sunday { background:#fff0f0; }
+  .cal-day.today { border-color:var(--pink); border-width:2px; }
+  .cal-day.has-record { background:var(--pink-ll); border-color:var(--pink); }
+  .cal-day-num { font-size:11px; font-weight:600; color:var(--text); }
+  .cal-day.sunday .cal-day-num { color:#e74c3c; }
+  .cal-trip { font-size:9px; color:var(--pink); font-weight:700; margin-top:2px; line-height:1.2; }
+
+  /* Modal */
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto; }
+  .modal-bg.show { display:flex; }
+  .modal { background:white; border-radius:20px; padding:24px; width:100%; max-width:420px; margin:auto; }
+  .modal h3 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:16px; }
+  .modal-actions { display:flex; gap:8px; margin-top:16px; }
+  .modal-actions .btn { flex:1; padding:14px; font-size:15px; font-weight:700; border-radius:13px; cursor:pointer; margin-bottom:0; }
+  .modal .fg { margin-bottom:10px; }
+  .modal input { background:var(--pink-ll); }
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-poya">POYA 寶雅</div>
+  <div class="login-tagline">LOGISTICS · 運務管理系統</div>
+  <div class="login-card">
+    <h2>👤 登入您的帳號</h2>
+    <p>請選擇姓名並輸入您的專屬密碼</p>
+    <select id="login-name">
+      <option value="">── 請選擇姓名 ──</option>
+      <option>李憶擇</option><option>梁世昌</option><option>劉哲維</option>
+      <option>陳勇德</option><option>王晴益</option>
+    </select>
+    <input type="password" id="login-pw" placeholder="請輸入密碼" maxlength="6" style="letter-spacing:4px;font-size:20px">
+    <button class="btn-login" onclick="doLogin()">進入系統 →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+  <div class="login-dots">
+    <div class="dot" style="background:white;opacity:0.9"></div>
+    <div class="dot" style="background:var(--orange)"></div>
+    <div class="dot" style="background:var(--yellow)"></div>
+    <div class="dot" style="background:var(--green)"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="color-stripe">
+    <div style="background:var(--pink)"></div><div style="background:var(--orange)"></div>
+    <div style="background:var(--yellow)"></div><div style="background:var(--green)"></div>
+  </div>
+  <header>
+    <div><div class="header-brand">POYA 寶雅</div><span class="header-sub">運務出勤系統</span></div>
+    <div class="header-right">
+      <div class="user-badge" id="user-badge"></div>
+      <button class="btn-logout" onclick="doLogout()">登出</button>
+    </div>
+  </header>
+  <div class="tabs">
+    <div class="tab on" onclick="showTab('form',this)">📝 出勤趟數回報</div>
+    <div class="tab" onclick="showTab('records',this)">📋 出勤紀錄</div>
+    <div class="tab" onclick="showTab('calendar',this)">📅 出勤月曆</div>
+    <div class="tab" onclick="showTab('salary',this)">💰 本月薪資</div>
+    <div class="tab" onclick="showTab('download',this)">⬇️ PDF匯出</div>
+  </div>
+
+  <!-- 填報 -->
+  <div class="page on" id="page-form">
+    <div class="success-banner" id="success-banner">✅ 紀錄已成功送出！</div>
+    <div class="card">
+      <div class="card-title">出勤基本資料</div>
+      <div class="fg"><label>出勤日期</label><input type="date" id="date"></div>
+      <div class="fg"><label>車牌號碼</label><input type="text" id="plate" placeholder="例：905-2"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">配送路線區域</div>
+      <!-- 趟次 1~6 -->
+      <div id="routes-container"></div>
+      <div class="fg" style="margin-top:8px"><label>轉倉次數</label><input type="number" id="transfer" min="0" placeholder="選填"></div>
+      <div class="fg">
+        <label>廠提區域</label>
+        <div class="route-row">
+          <div class="route-input">
+            <div class="area-chips" id="factory-chips">
+              <button class="chip" onclick="setFactory('台南')">台南</button>
+              <button class="chip" onclick="setFactory('台中')">台中</button>
+              <button class="chip" onclick="setFactory('無')">無</button>
+            </div>
+            <input type="hidden" id="factory-area">
+          </div>
+          <div class="count-wrap" style="margin-left:8px">
+            <input type="number" id="factory-count" min="0" placeholder="0" style="width:58px">
+            <span>間</span>
+          </div>
+        </div>
+        <div style="margin-top:6px">
+          <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px">噸數</div>
+          <div class="area-chips" id="factory-ton-chips">
+            <button class="chip" onclick="setFactoryTon('11噸')">11噸</button>
+            <button class="chip" onclick="setFactoryTon('6.5噸')">6.5噸</button>
+            <button class="chip" onclick="setFactoryTon('3.5噸')">3.5噸</button>
+          </div>
+          <input type="hidden" id="factory-ton">
+        </div>
+        <div class="preview-tag" id="factory-preview"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">✅ 送出紀錄</button>
+  </div>
+
+  <!-- 出勤紀錄 -->
+  <div class="page" id="page-records">
+    <div id="stats-area"></div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">篩選月份</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="cal-nav" onclick="recordMonthPrev()">‹</button>
+        <div id="record-month-label" style="flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--text)"></div>
+        <button class="cal-nav" onclick="recordMonthNext()">›</button>
+      </div>
+    </div>
+    <div id="records-list"><div class="empty"><div class="empty-icon">📋</div>尚無出勤紀錄</div></div>
+  </div>
+
+  <!-- 出勤月曆 -->
+  <div class="page" id="page-calendar">
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calPrev()">‹</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="cal-nav" onclick="calNext()">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div id="cal-detail"></div>
+  </div>
+
+  <!-- 本月薪資 -->
+  <div class="page" id="page-salary">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">篩選月份</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="cal-nav" onclick="salaryMonthPrev()">‹</button>
+        <div id="salary-month-label" style="flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--text)"></div>
+        <button class="cal-nav" onclick="salaryMonthNext()">›</button>
+      </div>
+    </div>
+    <div id="salary-content"></div>
+  </div>
+
+  <!-- PDF匯出 -->
+  <div class="page" id="page-download">
+    <div class="card">
+      <div class="card-title">PDF匯出設定</div>
+      <div class="fg">
+        <label>匯出類型</label>
+        <select id="export-type" onchange="toggleExportType()">
+          <option value="ten">10天週期</option>
+          <option value="month">整月月報</option>
+        </select>
+      </div>
+      <div id="ten-options">
+        <div class="fg">
+          <label>選擇週期</label>
+          <select id="dl-ten" onchange="updateTenPreview()">
+            <option value="0">本期（最近10天）</option>
+            <option value="1">上一期</option>
+            <option value="2">上上期</option>
+            <option value="3">三期前</option>
+          </select>
+          <div class="week-label" id="ten-label"></div>
+        </div>
+      </div>
+      <div id="month-options" style="display:none">
+        <div class="fg">
+          <label>選擇月份</label>
+          <input type="month" id="dl-month">
+        </div>
+      </div>
+    </div>
+    <div class="pdf-preview" id="pdf-preview" style="display:none">
+      <div class="pdf-preview-title">📄 預覽內容</div>
+      <div id="preview-rows"></div>
+    </div>
+    <button class="btn btn-dl" onclick="exportPDF()">🖨️ 列印 / 儲存為 PDF</button>
+    <button class="btn btn-outline" onclick="previewExport()">👁 預覽內容</button>
+  </div>
+</div>
+
+<!-- 編輯 Modal -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <h3>✏️ 修改紀錄</h3>
+    <input type="hidden" id="edit-idx">
+    <div class="fg"><label>日期</label><input type="date" id="edit-date"></div>
+    <div class="fg"><label>車牌</label><input type="text" id="edit-plate" placeholder="例：905-2"></div>
+    <div id="edit-routes-container"></div>
+    <div class="fg"><label>轉倉次數</label><input type="number" id="edit-transfer" min="0" placeholder="選填"></div>
+    <div class="fg">
+      <label>廠提區域</label>
+      <div class="route-row">
+        <div class="route-input">
+          <div class="area-chips" id="edit-factory-chips">
+            <button class="chip" onclick="setEditFactory('台南')">台南</button>
+            <button class="chip" onclick="setEditFactory('台中')">台中</button>
+            <button class="chip" onclick="setEditFactory('無')">無</button>
+          </div>
+          <input type="hidden" id="edit-factory-area">
+        </div>
+        <div class="count-wrap" style="margin-left:8px">
+          <input type="number" id="edit-factory-count" min="0" placeholder="0" style="width:58px">
+          <span>間</span>
+        </div>
+      </div>
+      <div style="margin-top:6px">
+        <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px">噸數</div>
+        <div class="area-chips" id="edit-factory-ton-chips">
+          <button class="chip" onclick="setEditFactoryTon('11噸')">11噸</button>
+          <button class="chip" onclick="setEditFactoryTon('6.5噸')">6.5噸</button>
+          <button class="chip" onclick="setEditFactoryTon('3.5噸')">3.5噸</button>
+        </div>
+        <input type="hidden" id="edit-factory-ton">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEdit()">💾 儲存</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+
+<script>
+const USERS = {'李憶擇':'1116','梁世昌':'5888','劉哲維':'5566','陳勇德':'1122','王晴益':'0000'};
+const AREAS = ['雲林','嘉義','台南','高雄'];
+const ROUTE_COLORS = ['#e8317a','#f47920','#3aaa35','#9b59b6','#1a73e8','#e67e22'];
+const ROUTE_COUNT = 6;
+let currentUser = sessionStorage.getItem('poya_user') || null;
+let calYear, calMonth;
+let recordYear, recordMonth;
+let salaryYear, salaryMonth;
+
+const SALARY_RATES = {
+  '台南': 1000, '嘉義': 1400, '雲林': 1600, '高雄': 1000,
+  '廠提台南': 1000, '廠提台中': 2000, '轉倉': 300
+};
+
+function skey(u){ return 'poya_records_'+u; }
+function getRecords(){ return JSON.parse(localStorage.getItem(skey(currentUser))||'[]'); }
+function saveRecords(r){
+  // 只保留最近6個月的資料
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 6);
+  const filtered = r.filter(rec => new Date(rec.date) >= cutoff);
+  localStorage.setItem(skey(currentUser), JSON.stringify(filtered));
+}
+
+// 建立趟次輸入欄位
+function buildRouteInputs(container, prefix, count) {
+  const TONS = ['11噸','6.5噸','3.5噸'];
+  let html = '';
+  for(let n=1;n<=count;n++){
+    html += `<div class="fg" style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px">
+      <label>趟次${n}</label>
+      <div class="route-row">
+        <div class="route-input">
+          <input type="text" id="${prefix}r${n}" placeholder="${n===1?'路線區域名稱':'選填'}" oninput="syncChips('${prefix}',${n})">
+        </div>
+        <div class="count-wrap" style="margin-left:8px">
+          <input type="number" id="${prefix}c${n}" min="0" placeholder="0" oninput="updatePreviewTag('${prefix}',${n})" style="width:58px">
+          <span>間</span>
+        </div>
+      </div>
+      <div class="area-chips" id="${prefix}area${n}">
+        ${AREAS.map(a=>`<button class="chip" onclick="setAreaChip('${prefix}',${n},'${a}')">${a}</button>`).join('')}
+      </div>
+      <div style="margin-top:6px">
+        <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:4px">噸數</div>
+        <div class="area-chips" id="${prefix}ton${n}">
+          ${TONS.map(t=>`<button class="chip" onclick="setTon('${prefix}',${n},'${t}')">${t}</button>`).join('')}
+        </div>
+        <input type="hidden" id="${prefix}t${n}">
+      </div>
+      <div class="preview-tag" id="${prefix}p${n}"></div>
+    </div>`;
+  }
+  document.getElementById(container).innerHTML = html;
+}
+
+function setTon(prefix, n, ton){
+  document.getElementById(prefix+'t'+n).value=ton;
+  document.querySelectorAll(`#${prefix}ton${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===ton));
+  updatePreviewTag(prefix,n);
+}
+function syncChips(prefix, n){
+  // 純更新預覽，不動區域按鈕高亮（兩者獨立）
+  updatePreviewTag(prefix,n);
+}
+function updatePreviewTag(prefix,n){
+  const r=document.getElementById(prefix+'r'+n).value.trim();
+  const c=document.getElementById(prefix+'c'+n).value;
+  const tEl=document.getElementById(prefix+'t'+n);
+  const t=tEl?tEl.value:'';
+  // 取得已選的區域
+  const areaOn=[...document.querySelectorAll(`#${prefix}area${n} .chip.on`)].map(b=>b.textContent).join('');
+  const el=document.getElementById(prefix+'p'+n);
+  if(el){
+    let preview='';
+    if(r) preview+='路線：'+r;
+    if(areaOn) preview+=(preview?' ｜ ':'')+'區域：'+areaOn;
+    if(c) preview+=(preview?' ｜ ':'')+'間數：'+c+'間';
+    if(t) preview+=(preview?' ｜ ':'')+'噸數：'+t;
+    el.textContent=preview?'預覽：'+preview:'';
+  }
+}
+function setAreaChip(prefix,n,area){
+  // 區域快選：只標記選取狀態，不改動文字欄位
+  // 如果目前已選同一個區域則取消，否則選取
+  const el=document.getElementById(prefix+'r'+n);
+  const chips=document.querySelectorAll(`#${prefix}area${n} .chip`);
+  const isAlreadyOn=[...chips].find(b=>b.textContent===area&&b.classList.contains('on'));
+  chips.forEach(b=>b.classList.remove('on'));
+  if(!isAlreadyOn){
+    // 選取這個區域：把區域名稱寫到輸入框末端（如果框是空的）
+    // 如果框是空的就直接填入，否則保留原本內容
+    if(!el.value.trim()) el.value=area;
+    document.querySelector(`#${prefix}area${n} .chip[onclick*="${area}"]`).classList.add('on');
+  }
+  updatePreviewTag(prefix,n);
+}
+
+// 廠提
+function setFactory(area){
+  document.getElementById('factory-area').value=area==='無'?'':area;
+  document.querySelectorAll('#factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===area));
+  updateFactoryPreview();
+}
+function setFactoryTon(ton){
+  document.getElementById('factory-ton').value=ton;
+  document.querySelectorAll('#factory-ton-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===ton));
+  updateFactoryPreview();
+}
+function setEditFactoryTon(ton){
+  document.getElementById('edit-factory-ton').value=ton;
+  document.querySelectorAll('#edit-factory-ton-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===ton));
+}
+function updateFactoryPreview(){
+  const area=document.getElementById('factory-area').value;
+  const count=document.getElementById('factory-count').value;
+  const ton=document.getElementById('factory-ton').value;
+  document.getElementById('factory-preview').textContent=area?(area+(count?'（'+count+'間）':'')+(ton?' ['+ton+']':'')):'';
+}
+function setEditFactory(area){
+  document.getElementById('edit-factory-area').value=area==='無'?'':area;
+  document.querySelectorAll('#edit-factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===area));
+}
+
+function fmt(r,c){ return r?r+(c?'（'+c+'間）':''):''; }
+function parseRoute(str){
+  if(!str) return {route:'',count:0};
+  const m=str.match(/^(.+?)（(\d+)間）$/);
+  if(m) return{route:m[1].trim(),count:parseInt(m[2])};
+  return{route:str.trim(),count:0};
+}
+
+window.onload = ()=>{
+  if(currentUser) showApp(); else showLogin();
+  const now=new Date();
+  document.getElementById('date').value=now.toISOString().split('T')[0];
+  document.getElementById('dl-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  calYear=now.getFullYear(); calMonth=now.getMonth();
+  recordYear=now.getFullYear(); recordMonth=now.getMonth();
+  salaryYear=now.getFullYear(); salaryMonth=now.getMonth();
+  updateTenPreview();
+  document.getElementById('login-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+};
+
+function showLogin(){ document.getElementById('login-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('user-badge').textContent=currentUser;
+  buildRouteInputs('routes-container','',ROUTE_COUNT);
+  buildRouteInputs('edit-routes-container','edit-',ROUTE_COUNT);
+  loadMyRecords();
+  const now2=new Date();
+  salaryYear=now2.getFullYear(); salaryMonth=now2.getMonth();
+  document.getElementById('salary-month-label').textContent=(salaryYear-1911)+'年'+String(salaryMonth+1).padStart(2,'0')+'月';
+}
+function doLogin(){
+  const name=document.getElementById('login-name').value, pw=document.getElementById('login-pw').value, err=document.getElementById('login-error');
+  if(!name){err.textContent='⚠️ 請選擇姓名';err.style.display='block';return;}
+  if(USERS[name]!==pw){err.textContent='❌ 密碼錯誤，請重新輸入';err.style.display='block';document.getElementById('login-pw').value='';return;}
+  err.style.display='none'; currentUser=name; sessionStorage.setItem('poya_user',name); showApp();
+}
+function doLogout(){ currentUser=null; sessionStorage.removeItem('poya_user'); document.getElementById('login-name').value=''; document.getElementById('login-pw').value=''; showLogin(); }
+
+function showTab(t,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(tab=>tab.classList.remove('on'));
+  document.getElementById('page-'+t).classList.add('on'); el.classList.add('on');
+  if(t==='records') loadMyRecords();
+  if(t==='calendar') renderCalendar();
+  if(t==='salary') loadSalary();
+}
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
+
+function submitForm(){
+  const date=document.getElementById('date').value;
+  const r1=document.getElementById('r1').value.trim();
+  const factory=document.getElementById('factory-area').value;
+  if(!date){toast('⚠️ 請選擇日期');return;}
+  if(!r1 && !factory){toast('⚠️ 請至少填寫趟次一路線或廠提區域');return;}
+  const data={name:currentUser,date,plate:document.getElementById('plate').value.trim(),transfer:document.getElementById('transfer').value,factory:document.getElementById('factory-area').value,factoryCount:document.getElementById('factory-count').value,factoryTon:document.getElementById('factory-ton').value,time:new Date().toLocaleString('zh-TW')};
+  for(let n=1;n<=ROUTE_COUNT;n++){
+    const route=document.getElementById('r'+n).value.trim();
+    const count=document.getElementById('c'+n).value;
+    const areaOn=[...document.querySelectorAll(`#area${n} .chip.on`)].map(b=>b.textContent).join('');
+    data['r'+n]=route; // 路線名稱（純文字）
+    data['a'+n]=areaOn; // 區域分類
+    data['c'+n]=count;  // 間數
+    data['t'+n]=document.getElementById('t'+n).value; // 噸數
+  }
+  const records=getRecords(); records.push(data); saveRecords(records);
+  const btn=document.getElementById('submit-btn');
+  btn.textContent='送出中...'; btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='✅ 送出紀錄'; btn.disabled=false;
+    const b=document.getElementById('success-banner'); b.style.display='flex'; setTimeout(()=>b.style.display='none',3000);
+    for(let n=1;n<=ROUTE_COUNT;n++){document.getElementById('r'+n).value='';document.getElementById('c'+n).value='';document.getElementById('p'+n).textContent='';document.getElementById('t'+n).value='';document.querySelectorAll(`#area${n} .chip`).forEach(b=>b.classList.remove('on'));document.querySelectorAll(`#ton${n} .chip`).forEach(b=>b.classList.remove('on'));}
+    // 清 preview 標籤
+    document.getElementById('transfer').value='';
+    document.getElementById('factory-area').value='';
+    document.getElementById('factory-count').value='';
+    document.getElementById('factory-ton').value='';
+    document.getElementById('factory-preview').textContent='';
+    document.querySelectorAll('#factory-chips .chip').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('#factory-ton-chips .chip').forEach(b=>b.classList.remove('on'));
+  },500);
+}
+
+// 月曆
+function renderCalendar(){
+  const records=getRecords();
+  const rocYear=calYear-1911;
+  document.getElementById('cal-title').textContent=rocYear+'年'+(calMonth+1)+'月';
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date().toISOString().split('T')[0];
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=['日','一','二','三','四','五','六'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) grid.innerHTML+=`<div class="cal-day empty-day"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dayRecs=records.filter(r=>r.date===ds);
+    const tripCount=dayRecs.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}if(r.factory&&r.factory!=='無')c++;return s+c;},0);
+    const isSun=new Date(calYear,calMonth,d).getDay()===0;
+    const hasRec=dayRecs.length>0;
+    grid.innerHTML+=`<div class="cal-day${isSun?' sunday':''}${ds===today?' today':''}${hasRec?' has-record':''}" onclick="showDayDetail('${ds}')">
+      <div class="cal-day-num">${d}</div>
+      ${hasRec?`<div class="cal-trip">${tripCount}趟</div>`:''}
+    </div>`;
+  }
+}
+function recordMonthPrev(){ recordMonth--; if(recordMonth<0){recordMonth=11;recordYear--;} loadMyRecords(); }
+function recordMonthNext(){ recordMonth++; if(recordMonth>11){recordMonth=0;recordYear++;} loadMyRecords(); }
+function salaryMonthPrev(){ salaryMonth--; if(salaryMonth<0){salaryMonth=11;salaryYear--;} loadSalary(); }
+function salaryMonthNext(){ salaryMonth++; if(salaryMonth>11){salaryMonth=0;salaryYear++;} loadSalary(); }
+
+function loadSalary(){
+  const rocYear=salaryYear-1911;
+  const mStr=rocYear+'年'+String(salaryMonth+1).padStart(2,'0')+'月';
+  document.getElementById('salary-month-label').textContent=mStr;
+
+  const all=getRecords();
+  const mStart=new Date(salaryYear,salaryMonth,1);
+  const mEnd=new Date(salaryYear,salaryMonth+1,0,23,59,59);
+  const records=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
+
+  // 計算各區域趟數
+  const areaCounts={台南:0,嘉義:0,雲林:0,高雄:0};
+  const factoryCounts={台南:0,台中:0};
+  let totalTransfer=0;
+  let totalTrips=0;
+
+  records.forEach(r=>{
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        const a=(r['a'+n]||'').trim();
+        if(areaCounts[a]!==undefined){ areaCounts[a]++; totalTrips++; }
+        else { totalTrips++; } // 沒選區域也算趟
+      }
+    }
+    if(r.factory&&r.factory!=='無'){
+      if(factoryCounts[r.factory]!==undefined){ factoryCounts[r.factory]++; totalTrips++; }
+    }
+    totalTransfer+=parseInt(r.transfer||0);
+    totalTrips+=parseInt(r.transfer||0); // 轉倉也計入總趟數
+  });
+
+  // 計算薪資
+  let salary=0;
+  salary+=areaCounts['台南']*SALARY_RATES['台南'];
+  salary+=areaCounts['嘉義']*SALARY_RATES['嘉義'];
+  salary+=areaCounts['雲林']*SALARY_RATES['雲林'];
+  salary+=areaCounts['高雄']*SALARY_RATES['高雄'];
+  salary+=factoryCounts['台南']*SALARY_RATES['廠提台南'];
+  salary+=factoryCounts['台中']*SALARY_RATES['廠提台中'];
+  salary+=totalTransfer*SALARY_RATES['轉倉'];
+
+  const fmt$=n=>n.toLocaleString('zh-TW');
+
+  const areaRows=Object.entries(areaCounts).map(([k,v])=>{
+    if(v===0)return'';
+    return`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pink-l)">
+      <span style="font-size:13px;color:var(--sub)">${k}路線</span>
+      <span style="font-size:13px;font-weight:600">${v}趟 × $${fmt$(SALARY_RATES[k])} = <span style="color:var(--pink)">$${fmt$(v*SALARY_RATES[k])}</span></span>
+    </div>`;
+  }).join('');
+
+  const facRows=Object.entries(factoryCounts).map(([k,v])=>{
+    if(v===0)return'';
+    return`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pink-l)">
+      <span style="font-size:13px;color:var(--sub)">廠提${k}</span>
+      <span style="font-size:13px;font-weight:600">${v}趟 × $${fmt$(SALARY_RATES['廠提'+k])} = <span style="color:var(--pink)">$${fmt$(v*SALARY_RATES['廠提'+k])}</span></span>
+    </div>`;
+  }).join('');
+
+  const transferRow=totalTransfer>0?`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pink-l)">
+    <span style="font-size:13px;color:var(--sub)">轉倉</span>
+    <span style="font-size:13px;font-weight:600">${totalTransfer}次 × $${fmt$(SALARY_RATES['轉倉'])} = <span style="color:var(--pink)">$${fmt$(totalTransfer*SALARY_RATES['轉倉'])}</span></span>
+  </div>`:'';
+
+  document.getElementById('salary-content').innerHTML=`
+    <!-- 預估薪資 -->
+    <div class="card" style="text-align:center;margin-bottom:12px;background:linear-gradient(135deg,var(--pink),var(--pink-d));border:none">
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:6px;font-weight:600">本月預估薪資</div>
+      <div style="font-size:36px;font-weight:900;color:white">$${fmt$(salary)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px">${mStr}</div>
+    </div>
+
+    <!-- 總趟數 -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">本月總趟數</div>
+      <div style="font-size:32px;font-weight:900;color:var(--pink);text-align:center;padding:8px 0">${totalTrips} 趟</div>
+    </div>
+
+    <!-- 明細 -->
+    <div class="card">
+      <div class="card-title">各項明細</div>
+      ${areaRows||'<div style="color:var(--sub);font-size:13px;padding:8px 0">本月尚無路線趟數</div>'}
+      ${facRows}
+      ${transferRow}
+      ${!areaRows&&!facRows&&!transferRow?'':'<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:4px"><span style="font-size:14px;font-weight:700">合計</span><span style="font-size:16px;font-weight:900;color:var(--pink)">$'+fmt$(salary)+'</span></div>'}
+    </div>
+  `;
+}
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function showDayDetail(ds){
+  const records=getRecords().filter(r=>r.date===ds);
+  const detail=document.getElementById('cal-detail');
+  if(!records.length){detail.innerHTML='';return;}
+  detail.innerHTML=records.map(r=>{
+    let rows='';
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        let val=r['r'+n];
+        if(r['a'+n]) val+='（'+r['a'+n]+'）';
+        if(r['c'+n]) val+=' '+r['c'+n]+'間';
+        if(r['t'+n]) val+=' ['+r['t'+n]+']';
+        rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${val}</span></div>`;
+      }
+    }
+    if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
+    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}${r.factoryTon?' ['+r.factoryTon+']':''}</span></div>`;
+    return`<div class="record-card"><div class="record-date">📅 ${r.date}</div>${rows}</div>`;
+  }).join('');
+}
+
+// 10天週期
+function getTenRange(offset){
+  // 用本地時間避免時差問題
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth(), day=now.getDate();
+  // 判斷當前期數
+  let curPeriod = day<=10?0 : day<=20?1 : 2;
+  let totalPeriod = curPeriod - offset;
+  // 換算月份
+  while(totalPeriod < 0){ totalPeriod+=3; m--; if(m<0){m=11;y--;} }
+  while(totalPeriod > 2){ totalPeriod-=3; m++; if(m>11){m=0;y++;} }
+  const dim=new Date(y,m+1,0).getDate();
+  let s1,s2,e1,e2,label;
+  if(totalPeriod===0){
+    s1=y; s2=m+1; e1=1; e2=10; label='1-10日';
+  } else if(totalPeriod===1){
+    s1=y; s2=m+1; e1=11; e2=20; label='11-20日';
+  } else {
+    s1=y; s2=m+1; e1=21; e2=dim; label='21-'+dim+'日';
+  }
+  // 用本地時間建立日期字串，避免時區偏移
+  const pad=n=>String(n).padStart(2,'0');
+  const startStr=s1+'-'+pad(s2)+'-'+pad(e1);
+  const endStr=s1+'-'+pad(s2)+'-'+pad(e2);
+  const start=new Date(s1,s2-1,e1,0,0,0);
+  const end=new Date(s1,s2-1,e2,23,59,59);
+  return{start,end,startStr,endStr,periodLabel:(y-1911)+'年'+s2+'月 '+label};
+}
+function fmtDate(d){ return d.toISOString().split('T')[0]; }
+function updateTenPreview(){
+  const{startStr,endStr,periodLabel}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+  document.getElementById('ten-label').textContent=periodLabel+' ('+startStr+' ～ '+endStr+')';
+}
+function toggleExportType(){
+  const t=document.getElementById('export-type').value;
+  document.getElementById('ten-options').style.display=t==='ten'?'block':'none';
+  document.getElementById('month-options').style.display=t==='month'?'block':'none';
+}
+function getExportRecords(){
+  const type=document.getElementById('export-type').value;
+  const all=getRecords();
+  if(type==='ten'){
+    const{start,end,startStr,endStr,periodLabel}=getTenRange(parseInt(document.getElementById('dl-ten').value));
+    return{records:all.filter(r=>r.date>=startStr&&r.date<=endStr).sort((a,b)=>a.date.localeCompare(b.date)),start,end,startStr,endStr,type};
+  } else {
+    const mv=document.getElementById('dl-month').value;
+    const[y,m]=mv.split('-').map(Number);
+    const start=new Date(y,m-1,1),end=new Date(y,m,0,23,59,59);
+    const pad=n=>String(n).padStart(2,'0');
+    const startStr=y+'-'+pad(m)+'-01';
+    const endStr=y+'-'+pad(m)+'-'+pad(new Date(y,m,0).getDate());
+    return{records:all.filter(r=>{const d=new Date(r.date);return d>=start&&d<=end;}).sort((a,b)=>a.date.localeCompare(b.date)),start,end,startStr,endStr,type};
+  }
+}
+function previewExport(){
+  const res=getExportRecords();
+  const{records}=res;
+  document.getElementById('preview-rows').innerHTML=records.length===0
+    ?'<div style="text-align:center;color:#d0a0b4;padding:16px;font-size:13px">此期間無紀錄</div>'
+    :records.map(r=>{
+      let routes=[];for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])routes.push(r['r'+n]);}
+      return`<div class="pdf-row"><span class="day-label">${r.date.slice(5)}</span><span class="routes">${routes.join(' / ')}${r.transfer?' ｜轉倉'+r.transfer:''}${r.factory?' ｜廠提'+r.factory:''}</span></div>`;
+    }).join('');
+  document.getElementById('pdf-preview').style.display='block';
+}
+
+function calcTotals(records){
+  const area={雲林:0,嘉義:0,台南:0,高雄:0};
+  const factory={台南:0,台中:0};
+  let totalTransfer=0;
+  records.forEach(r=>{
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        const a=(r['a'+n]||'').trim();
+        if(area[a]!==undefined) area[a]++;
+      }
+    }
+    if(r.factory&&r.factory!=='無'&&factory[r.factory]!==undefined) factory[r.factory]++;
+    totalTransfer+=parseInt(r.transfer||0);
+  });
+  return{area,factory,totalTransfer};
+}
+
+function exportPDF(){
+  const{records,start,end,startStr,endStr,type}=getExportRecords();
+  const rocYear=start.getFullYear()-1911;
+  const month=String(start.getMonth()+1).padStart(2,'0');
+  const totals=calcTotals(records);
+  const totalTrips=records.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}if(r.factory&&r.factory!=='無')c++;return s+c;},0);
+  const totalTransfer=totals.totalTransfer;
+
+  // 日期列表
+  let days=[];
+  if(type==='ten'){
+    // 用字串切割避免時區問題
+    const[sy,sm,sd]=startStr.split('-').map(Number);
+    const[ey,em,ed]=endStr.split('-').map(Number);
+    let cur=new Date(sy,sm-1,sd);
+    const endD=new Date(ey,em-1,ed);
+    while(cur<=endD){
+      const ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+      const rec=records.find(r=>r.date===ds);
+      days.push({ds,rec,isSun:cur.getDay()===0,wd:['日','一','二','三','四','五','六'][cur.getDay()]});
+      cur.setDate(cur.getDate()+1);
+    }
+  } else {
+    const dim=new Date(start.getFullYear(),start.getMonth()+1,0).getDate();
+    for(let d=1;d<=dim;d++){
+      const ds=start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const rec=records.find(r=>r.date===ds);
+      const dobj=new Date(start.getFullYear(),start.getMonth(),d);
+      days.push({ds,rec,isSun:dobj.getDay()===0,wd:['日','一','二','三','四','五','六'][dobj.getDay()]});
+    }
+  }
+
+  const rows=days.map(({ds,rec,isSun,wd})=>{
+    let routeCells='';
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      let cell='';
+      if(rec&&rec['r'+n]){
+        cell=rec['r'+n];
+        if(rec['a'+n]) cell+='（'+rec['a'+n]+'）';
+        if(rec['c'+n]) cell+=' '+rec['c'+n]+'間';
+        if(rec['t'+n]) cell+='<br><span style="font-size:6.5pt;color:#555">['+rec['t'+n]+']</span>';
+      }
+      routeCells+=`<td>${cell}</td>`;
+    }
+    const facVal=rec?(rec.factory||'')+(rec.factoryCount?'（'+rec.factoryCount+'間）':'')+(rec.factoryTon?' ['+rec.factoryTon+']':''):'';
+    return`<tr class="${isSun?'sunday':''}"><td class="center">${ds.slice(5)}(${wd})</td>${routeCells}<td class="center">${rec?rec.transfer||'':''}</td><td class="center">${rec?rec.plate||'':''}</td><td class="center">${facVal}</td></tr>`;
+  }).join('');
+
+  const thCols=Array.from({length:ROUTE_COUNT},(_,i)=>`<th>配送趟次${i+1}<br>（路線區域）</th>`).join('');
+  const colW=Math.floor(62/ROUTE_COUNT);
+  const colGroup=`<col style="width:8%">${Array(ROUTE_COUNT).fill(`<col style="width:${colW}%">`).join('')}<col style="width:4%"><col style="width:5%"><col style="width:5%">`;
+  const periodStr=type==='ten'?fmtDate(start)+' ～ '+fmtDate(end):rocYear+'年'+month+'月';
+
+  const printHTML=`<!DOCTYPE html>
+<html lang="zh-TW"><head><meta charset="UTF-8"><title>${rocYear}年${month}月出勤表</title>
+<style>
+  @page{size:A4 landscape;margin:8mm 10mm;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"PingFang TC","Microsoft JhengHei",-apple-system,sans-serif;font-size:8.5pt;}
+  .title-row{display:flex;align-items:center;margin-bottom:3mm;}
+  .spacer{flex:0 0 60px;}
+  .title-main{flex:1;text-align:center;font-size:13pt;font-weight:bold;}
+  .title-right{flex:0 0 130px;text-align:right;font-size:7.5pt;line-height:1.6;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  th{background:#BDD7EE;font-weight:bold;font-size:7pt;text-align:center;border:1px solid #333;padding:1.5mm 1mm;height:10mm;vertical-align:middle;line-height:1.3;}
+  td{border:1px solid #333;height:12mm;vertical-align:middle;padding:1mm 1.5mm;font-size:7.5pt;}
+  td.center{text-align:center;}
+  tr.sunday td{background:#CCCCCC;}
+  .footer{border:1px solid #333;border-top:none;}
+  .footer-row{padding:1.5mm 3mm;border-bottom:1px solid #333;font-size:7.5pt;min-height:7mm;display:flex;align-items:center;}
+  .footer-row:last-child{border-bottom:none;}
+</style></head><body>
+<div class="title-row">
+  <div class="spacer"></div>
+  <div class="title-main">${rocYear}年${month}月出勤表（寶雅）</div>
+  <div class="title-right">運務士　${currentUser}　：<br>期間：${periodStr}</div>
+</div>
+<table>
+  <colgroup>${colGroup}</colgroup>
+  <thead><tr><th>日期</th>${thCols}<th>轉倉</th><th>車牌號碼</th><th>廠提</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="footer">
+  <div class="footer-row">總趟數：${totalTrips} 趟　**　雲林路線：${totals.area['雲林']} 趟　**　嘉義路線：${totals.area['嘉義']} 趟　**　台南路線：${totals.area['台南']} 趟　**　高雄路線：${totals.area['高雄']} 趟　廠提: 台南 ${totals.factory['台南']} 次　台中 ${totals.factory['台中']} 次</div>
+  <div class="footer-row">轉倉：${totalTransfer}</div>
+</div>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if(w){
+    w.document.write(printHTML);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 600);
+  } else {
+    toast('❌ 請允許彈出視窗');
+  }
+}
+
+// 紀錄
+function loadMyRecords(){
+  const rawAll=getRecords(); // 原始順序（用於 index 操作）
+  const all=rawAll.slice().reverse(); // 反序顯示用
+  const y=recordYear, m=recordMonth;
+  const mStart=new Date(y,m,1), mEnd=new Date(y,m+1,0,23,59,59);
+  const thisMon=all.filter(r=>{const d=new Date(r.date);return d>=mStart&&d<=mEnd;});
+  const mTransfer=thisMon.reduce((s,r)=>s+(parseInt(r.transfer)||0),0);
+  const mTrips=thisMon.reduce((s,r)=>{let c=0;for(let n=1;n<=ROUTE_COUNT;n++){if(r['r'+n])c++;}if(r.factory&&r.factory!=='無')c++;return s+c;},0);
+  const rocYear=y-1911;
+  document.getElementById('record-month-label').textContent=rocYear+'年'+String(m+1).padStart(2,'0')+'月';
+  document.getElementById('stats-area').innerHTML=`
+    <div style="margin-bottom:8px;font-size:12px;color:var(--sub);font-weight:600;padding:0 2px">${rocYear}年${m+1}月統計</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" style="color:var(--pink)">${all.length}</div><div class="stat-lbl">累計出勤天</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${mTrips}</div><div class="stat-lbl">當月趟數</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${mTransfer}</div><div class="stat-lbl">當月轉倉</div></div>
+    </div>`;
+  const list=document.getElementById('records-list');
+  if(!thisMon.length){list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>'+rocYear+'年'+String(m+1).padStart(2,'0')+'月無出勤紀錄</div>';return;}
+  const allLen=all.length;
+  list.innerHTML=thisMon.map((r,i)=>{
+    const realIdx=rawAll.findIndex(a=>a.date===r.date&&a.time===r.time);
+    let rows='';
+    for(let n=1;n<=ROUTE_COUNT;n++){
+      if(r['r'+n]){
+        let val=r['r'+n];
+        if(r['a'+n]) val+='（'+r['a'+n]+'）';
+        if(r['c'+n]) val+=' '+r['c'+n]+'間';
+        if(r['t'+n]) val+=' ['+r['t'+n]+']';
+        rows+=`<div class="record-row"><span class="lbl">趟次${n}</span><span class="val">${val}</span></div>`;
+      }
+    }
+    if(r.transfer)rows+=`<div class="record-row"><span class="lbl">轉倉</span><span class="val">${r.transfer}次</span></div>`;
+    if(r.factory)rows+=`<div class="record-row"><span class="lbl">廠提</span><span class="val">${r.factory}${r.factoryCount?'（'+r.factoryCount+'間）':''}${r.factoryTon?' ['+r.factoryTon+']':''}</span></div>`;
+    if(r.plate)rows+=`<div class="record-row"><span class="lbl">車牌</span><span class="val">${r.plate}</span></div>`;
+    return`<div class="record-card">
+      <div class="record-date">📅 ${r.date}</div>${rows}
+      <div class="record-actions">
+        <button class="btn btn-edit" onclick="openEdit(${realIdx})">✏️ 修改</button>
+        <button class="btn btn-danger" onclick="deleteRecord(${realIdx})">🗑️ 刪除</button>
+      </div></div>`;
+  }).join('');
+}
+
+function deleteRecord(idx){
+  if(!confirm('確定要刪除這筆紀錄嗎？'))return;
+  const records=getRecords(); records.splice(idx,1); saveRecords(records);
+  toast('🗑️ 已刪除'); loadMyRecords();
+}
+function openEdit(idx){
+  const r=getRecords()[idx];
+  document.getElementById('edit-idx').value=idx;
+  document.getElementById('edit-date').value=r.date;
+  document.getElementById('edit-plate').value=r.plate||'';
+  document.getElementById('edit-transfer').value=r.transfer||'';
+  for(let n=1;n<=ROUTE_COUNT;n++){
+    document.getElementById('edit-r'+n).value=r['r'+n]||'';
+    document.getElementById('edit-c'+n).value=r['c'+n]||'';
+    const area=r['a'+n]||'';
+    document.querySelectorAll(`#edit-area${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===area));
+    const ton=r['t'+n]||'';
+    document.getElementById('edit-t'+n).value=ton;
+    document.querySelectorAll(`#edit-ton${n} .chip`).forEach(b=>b.classList.toggle('on',b.textContent===ton));
+  }
+  const fac=r.factory||'';
+  const facCount=r.factoryCount||'';
+  const facTon=r.factoryTon||'';
+  document.getElementById('edit-factory-area').value=fac;
+  document.getElementById('edit-factory-count').value=facCount;
+  document.getElementById('edit-factory-ton').value=facTon;
+  document.querySelectorAll('#edit-factory-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===fac));
+  document.querySelectorAll('#edit-factory-ton-chips .chip').forEach(b=>b.classList.toggle('on',b.textContent===facTon));
+  document.getElementById('edit-modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('edit-modal').classList.remove('show'); }
+function saveEdit(){
+  const idx=parseInt(document.getElementById('edit-idx').value);
+  const records=getRecords();
+  const upd={...records[idx],date:document.getElementById('edit-date').value,plate:document.getElementById('edit-plate').value.trim(),transfer:document.getElementById('edit-transfer').value,factory:document.getElementById('edit-factory-area').value,factoryCount:document.getElementById('edit-factory-count').value,factoryTon:document.getElementById('edit-factory-ton').value};
+  for(let n=1;n<=ROUTE_COUNT;n++){
+    const route=document.getElementById('edit-r'+n).value.trim();
+    const count=document.getElementById('edit-c'+n).value;
+    const areaOn=[...document.querySelectorAll(`#edit-area${n} .chip.on`)].map(b=>b.textContent).join('');
+    upd['r'+n]=route;
+    upd['a'+n]=areaOn;
+    upd['c'+n]=count;
+    upd['t'+n]=document.getElementById('edit-t'+n).value;
+  }
+  records[idx]=upd; saveRecords(records); closeModal(); toast('✅ 修改已儲存'); loadMyRecords();
+}
+</script>
+</body>
+</html>
